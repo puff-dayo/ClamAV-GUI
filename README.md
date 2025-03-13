@@ -47,6 +47,7 @@ cd clamav-tkinter
 sudo apt install python3-tk
 ```
 
+## Imagenes
 ![Image](https://github.com/user-attachments/assets/14e15cd1-5287-44f7-a1f0-b1a20888f334)
 
   
@@ -56,3 +57,5 @@ sudo apt install python3-tk
   
 
 ![Image](https://github.com/user-attachments/assets/1c0215bc-d4f9-4dc4-8dc4-a5014a95cacc)
+
+Crédito del icono: [diamonjohn en Openclipart](https://openclipart.org/artist/diamonjohn)
