@@ -17,7 +17,19 @@ class ClamAVScanner:
         self.result_queue = queue.Queue()
         self.history_dir = Path.home() / "ClamAV_History"
         self.history_dir.mkdir(exist_ok=True)
+      
+
+        self.script_dir = os.path.dirname(os.path.realpath(__file__))
+        self.icon_path = os.path.join(self.script_dir, "shield.png")
+
+        try:
+            self.icon_image = PhotoImage(file=self.icon_path)
+            self.root.iconphoto(True, self.icon_image)
+        except Exception as e:
+            print(f"Error al cargar el ícono: {e}")
+
         self.setup_ui()
+
 
     def load_texts(self):
         return {
@@ -129,19 +141,22 @@ class ClamAVScanner:
         self.create_checkboxes()
         self.get_version()
 
-    def center_window(self):
-        screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
-        window_width = self.root.winfo_width()
-        window_height = self.root.winfo_height()
+    def center_window(self, window=None , marginx = 100, marginy= 100):
+        if window is None:
+            window = self.root
+        
+        screen_width = window.winfo_screenwidth()
+        screen_height = window.winfo_screenheight()
+        window_width = window.winfo_width()
+        window_height = window.winfo_height()
         x = (screen_width - window_width) // 2
         y = (screen_height - window_height) // 2
-        self.root.geometry(f"+{x}+{y}")
+        window.geometry(f"+{x-marginx}+{y-marginy}")
 
     def create_menu(self):
         menu_bar = tk.Menu(self.root)
         self.root.config(menu=menu_bar)
-
+        
         language_menu = tk.Menu(menu_bar, tearoff=0)
         language_menu.add_command(label=self.texts[self.lang]["language_menu1"], command=lambda: self.change_lang("en"))
         language_menu.add_command(label=self.texts[self.lang]["language_menu2"], command=lambda: self.change_lang("es"))
@@ -238,6 +253,8 @@ class ClamAVScanner:
         progressbar.stop()
         progressbar.destroy()
 
+        self.center_window(newWindow,500,250)
+
         text_square = tk.Text(newWindow, wrap=tk.WORD, font=("Courier New", 12))
         text_square.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -274,7 +291,7 @@ class ClamAVScanner:
         if path:
             newWindow = tk.Toplevel(self.root)
             newWindow.title(self.texts[self.lang]['scan_complete'])
-            self.center_window()
+            self.center_window(newWindow,200,150)
 
             label = ttk.Label(newWindow, text=f"{self.texts[self.lang]['loading_message']} {path}", justify="left", wraplength=280)
             label.pack(padx=10, pady=10)
