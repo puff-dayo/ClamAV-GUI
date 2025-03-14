@@ -172,7 +172,8 @@ class ClamAVScanner:
 
         self.help_menu = tk.Menu(self.menu_bar, tearoff=0)
         self.help_menu.add_command(
-            label=self.texts[self.lang]["help_menu1"]
+            label=self.texts[self.lang]["help_menu1"],
+            command=lambda: self.view_about()
         )
 
         self.menu_bar.add_cascade(
@@ -227,6 +228,7 @@ class ClamAVScanner:
     def change_lang(self, lang):
         self.lang = lang
         self.update_texts()
+        self.get_version()
 
     def update_texts(self):
         self.root.title(self.texts[self.lang]['app_title'])
@@ -244,6 +246,7 @@ class ClamAVScanner:
         self.checkbox_recursive.config(text=self.texts[self.lang]["checkbox_label1"])
         self.checkbox_kill.config(text=self.texts[self.lang]["checkbox_label2"])
 
+        
         self.create_menu()
         
 
@@ -343,6 +346,13 @@ class ClamAVScanner:
             is_file=False
         )
 
+    def view_about(self):
+        about_window = tk.Toplevel(self.root)
+        about_window.title("About")
+        self.center_window(about_window)
+        label_about = tk.Label(about_window,text=f"Version 0.0.9\nClamAV GUI es una interfaz gráfica de usuario (GUI) diseñada para facilitar el uso de ClamAV, un software antivirus de código abierto. Esta aplicación está inspirada en proyectos como ClamWin y ClamTk, y ofrece una experiencia más accesible y visual para los usuarios que desean realizar escaneos antivirus en sus sistemas de forma rápida y sencilla.",wraplength=280)
+        label_about.pack()
+
     def view_history(self):
         history_files = os.listdir(self.history_dir)
 
@@ -409,12 +419,12 @@ class ClamAVScanner:
                     version_full = parts[0].replace("ClamAV", "").strip()
                     version_date_str = parts[2].strip()
 
-                    fecha_version = datetime.strptime(version_date_str, "%a %b %d %H:%M:%S %Y")
-                    version_date_formatted = fecha_version.strftime("%Y-%m-%d")
+                    date_version = datetime.strptime(version_date_str, "%a %b %d %H:%M:%S %Y")
+                    version_date_formatted = date_version.strftime("%Y-%m-%d")
                     current_date = datetime.now().strftime("%Y-%m-%d")
 
                     self.label_version["text"] = (f"{self.texts[self.lang]['version_label']} {version_full}\n"
-                                                 f"{self.texts[self.lang]['database_updated_on']} {fecha_version}")
+                                                 f"{self.texts[self.lang]['database_updated_on']} {date_version}")
 
                     if current_date == version_date_formatted:
                         self.button_update_database.config(state="disabled")
