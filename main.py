@@ -7,265 +7,390 @@ import threading
 import queue
 from datetime import datetime
 from tkinter import PhotoImage
+from pathlib import Path
 
-root = tk.Tk()
-root.title("ClamAV Tkinter - Escáner de archivos y directorios")
-root.update_idletasks() 
+class ClamAVScanner:
+    def __init__(self, root):
+        self.root = root
+        self.lang = "en"
+        self.texts = self.load_texts()
+        self.result_queue = queue.Queue()
+        self.history_dir = Path.home() / "ClamAV_History"
+        self.history_dir.mkdir(exist_ok=True)
+        self.setup_ui()
 
-root.resizable(False, False)
+    def load_texts(self):
+        return {
+            "es": {
+                "app_title": "ClamAV Tkinter - Escáner de archivos y directorios",
+                "menu_bar1": "Idioma",
+                "menu_bar2": "Ayuda",
+                "language_menu1": "English",
+                "language_menu2": "Español",
+                "help_menu1": "Sobre",
+                "tab1": "Análisis",
+                "tab2": "Histórico",
+                "tab3": "Actualizaciones",
+                "tab4": "Config.",
+                "button_label1": "Escanear un archivo",
+                "button_label2": "Escanear un directorio",
+                "button_label3": "Ver historial de escaneos",
+                "button_label4": "Actualizar base de datos",
+                "checkbox_label1": "Buscar amenazas de manera recursiva",
+                "checkbox_label2": "Eliminar amenazas encontradas",
+                "version_label": "Versión de ClamAV: ",
+                "database_label": "Versión de la base de datos: ",
+                "exit_label": "Salir",
+                "select_file": "Selecciona un archivo",
+                "all_files": "Todos los archivos",
+                "text_files": "Archivos de texto",
+                "image_files": "Archivos de imagen",
+                "select_directory": "Selecciona un directorio",
+                "no_history_files": "No hay archivos de historial disponibles.",
+                "history_title": "Historial de escaneos",
+                "open_result": "Abrir resultado",
+                "database_locked": "El proceso de actualización de la base de datos se gestiona automáticamente y se ejecuta en segundo plano. No es necesario invocarlo manualmente.",
+                "database_update_error": "Error al actualizar la base de datos:",
+                "database_updated": "La base de datos se actualizó correctamente.",
+                "database_up_to_date": "La base de datos ya está actualizada y se gestiona automáticamente en segundo plano. No es necesario actualizarla manualmente.",
+                "database_updated_on": "Base de datos actualizada el:",
+                "current_date": "Fecha actual",
+                "version_date": "Fecha de versión",
+                "unexpected_version_format": "Formato de versión inesperado.",
+                "version_fetch_error": "No se pudo obtener la versión de ClamAV.",
+                "generic_error": "Error:",
+                "loading_message": "Cargando, por favor espere...",
+                "error_message": "Hubo un error. Por favor, intente nuevamente.",
+                "about_message": "ClamAV Tkinter es una interfaz gráfica para el escaneo de archivos y directorios usando el motor ClamAV.",
+                "scan_complete": "Escaneo",
+                "stdout": "Salida estándar",
+                "stderr": "Salida de error",
+                "result_saved": "Resultado guardado en",
+                "recursive_search": "Buscar amenazas de manera recursiva",
+                "delete_threats": "Eliminar amenazas encontradas"
+            },
+            "en": {
+                "app_title": "ClamAV Tkinter - File and Directory Scanner",
+                "menu_bar1": "Language",
+                "menu_bar2": "Help",
+                "language_menu1": "English",
+                "language_menu2": "Español",
+                "help_menu1": "About",
+                "tab1": "Analysis",
+                "tab2": "History",
+                "tab3": "Updates",
+                "tab4": "Configuration",
+                "button_label1": "Scan a file",
+                "button_label2": "Scan a directory",
+                "button_label3": "View scan history",
+                "button_label4": "Update database",
+                "checkbox_label1": "Search for threats recursively",
+                "checkbox_label2": "Remove found threats",
+                "version_label": "ClamAV Version: ",
+                "database_label": "Database Version: ",
+                "exit_label": "Exit",
+                "select_file": "Select a file",
+                "all_files": "All files",
+                "text_files": "Text files",
+                "image_files": "Image files",
+                "select_directory": "Select a directory",
+                "no_history_files": "No history files available.",
+                "history_title": "Scan history",
+                "open_result": "Open result",
+                "database_locked": "The database update process is managed automatically and runs in the background. Manual invocation is not necessary.",
+                "database_update_error": "Error updating the database:",
+                "database_updated": "The database was updated successfully.",
+                "database_up_to_date": "The database is already up to date and managed automatically in the background. Manual updates are not necessary.",
+                "database_updated_on": "Database updated on:",
+                "current_date": "Current date",
+                "version_date": "Version date",
+                "unexpected_version_format": "Unexpected version format.",
+                "version_fetch_error": "Failed to fetch ClamAV version.",
+                "generic_error": "Error:",
+                "loading_message": "Loading, please wait...",
+                "error_message": "An error occurred. Please try again.",
+                "about_message": "ClamAV Tkinter is a graphical interface for scanning files and directories using the ClamAV engine.",
+                "scan_complete": "Scan",
+                "stdout": "Standard output",
+                "stderr": "Error output",
+                "result_saved": "Result saved at",
+                "recursive_search": "Search for threats recursively",
+                "delete_threats": "Delete found threats"
+            }
+        }
 
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
+    def setup_ui(self):
+        self.root.title(self.texts[self.lang]['app_title'])
+        self.root.resizable(False, False)
+        self.center_window()
+        self.create_menu()
+        self.create_tabs()
+        self.create_buttons()
+        self.create_checkboxes()
+        self.get_version()
 
-window_width = root.winfo_width()
-window_height = root.winfo_height()
+    def center_window(self):
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        window_width = self.root.winfo_width()
+        window_height = self.root.winfo_height()
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+        self.root.geometry(f"+{x}+{y}")
 
-x = (screen_width - window_width) // 2
-y = (screen_height - window_height) // 2
+    def create_menu(self):
+        menu_bar = tk.Menu(self.root)
+        self.root.config(menu=menu_bar)
 
-root.geometry(f"+{x}+{y}")
+        language_menu = tk.Menu(menu_bar, tearoff=0)
+        language_menu.add_command(label=self.texts[self.lang]["language_menu1"], command=lambda: self.change_lang("en"))
+        language_menu.add_command(label=self.texts[self.lang]["language_menu2"], command=lambda: self.change_lang("es"))
 
-result_queue = queue.Queue()
+        help_menu = tk.Menu(menu_bar, tearoff=0)
+        help_menu.add_command(label=self.texts[self.lang]["help_menu1"])
 
+        menu_bar.add_cascade(label=self.texts[self.lang]["menu_bar1"], menu=language_menu)
+        menu_bar.add_cascade(label=self.texts[self.lang]["menu_bar2"], menu=help_menu)
 
-script_path = os.path.abspath(__file__)
-script_dir = os.path.dirname(script_path)   
+    def create_tabs(self):
+        self.tabs_notebook = ttk.Notebook(self.root)
+        self.tabs_notebook.pack(fill="both", expand=True, pady=10, padx=5)
 
-script_dir = os.path.dirname(os.path.realpath(__file__))
-icon_path = os.path.join(script_dir, "shield.png")
+        self.scan_frame = ttk.Frame(self.tabs_notebook)
+        self.history_frame = ttk.Frame(self.tabs_notebook)
+        self.update_frame = ttk.Frame(self.tabs_notebook)
+        self.config_frame = ttk.Frame(self.tabs_notebook)
 
-try:
-    icon_image = PhotoImage(file=icon_path)
-    root.iconphoto(True, icon_image)
-except Exception as e:
-    print(f"Error setting icon: {e}")
+        self.tabs_notebook.add(self.scan_frame, text=self.texts[self.lang]["tab1"])
+        self.tabs_notebook.add(self.history_frame, text=self.texts[self.lang]["tab2"])
+        self.tabs_notebook.add(self.update_frame, text=self.texts[self.lang]["tab3"])
+        self.tabs_notebook.add(self.config_frame, text=self.texts[self.lang]["tab4"])
 
-#Crear el directorio para almacenar los logs
-history_dir = os.path.join(os.path.expanduser("~"), "ClamAV_History")
-os.makedirs(history_dir, exist_ok=True)
+    def create_buttons(self):
+        self.button_scan_a_file = ttk.Button(self.scan_frame, text=self.texts[self.lang]["button_label1"], command=self.scan_a_file)
+        self.button_scan_a_file.pack(fill="x", pady=10, padx=10)
 
-def save_scan_result(result):
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = f"{timestamp}.txt"
-    filepath = os.path.join(history_dir, filename)
+        self.button_scan_a_directory = ttk.Button(self.scan_frame, text=self.texts[self.lang]["button_label2"], command=self.scan_a_directory)
+        self.button_scan_a_directory.pack(fill="x", pady=5, padx=10)
 
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write("Salida estándar:\n")
-        f.write(result.stdout)
-        f.write("\n\nSalida de error:\n")
-        f.write(result.stderr)
+        self.button_view_history = ttk.Button(self.history_frame, text=self.texts[self.lang]["button_label3"], command=self.view_history)
+        self.button_view_history.pack(fill="x", pady=10, padx=10)
 
-    return filepath
+        self.button_update_database = ttk.Button(self.update_frame, text=self.texts[self.lang]["button_label4"], command=self.update_database)
+        self.button_update_database.pack(fill="x", padx=10, pady=10)
 
-def run_scan(path, result_queue):
-    global checkbox_var_recursive
-    if checkbox_var_recursive == 1:
-        args = ['clamscan', '-r', path]
-    else:
-        args = ['clamscan', path]
-    try:
-        result = subprocess.run(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        result_queue.put(result)
-    except Exception as e:
-        result_queue.put(e)
+        self.label_version = ttk.Label(self.update_frame, text="", wraplength=280)
+        self.label_version.pack(padx=10, pady=10)
 
-def check_scan_status(progressbar, newWindow, result_queue):
-    try:
-        result = result_queue.get_nowait()
-    except queue.Empty:
-        root.after(100, check_scan_status, progressbar, newWindow, result_queue)
-        return
+    def create_checkboxes(self):
+        self.checkbox_var_recursive = tk.IntVar(value=1)
+        self.checkbox_var_kill = tk.IntVar(value=0)
 
-    progressbar.stop()
-    progressbar.destroy()
+        self.checkbox_recursive = tk.Checkbutton(self.config_frame, text=self.texts[self.lang]['recursive_search'], variable=self.checkbox_var_recursive)
+        self.checkbox_kill = tk.Checkbutton(self.config_frame, text=self.texts[self.lang]['delete_threats'], variable=self.checkbox_var_kill)
 
-    newWindow.geometry(f"+{x}+{y}")
+        self.checkbox_recursive.pack(pady=5, padx=5, anchor="w")
+        self.checkbox_kill.pack(pady=5, padx=5, anchor="w")
 
-    text_square = tk.Text(newWindow, wrap=tk.WORD, font=("Courier New", 12))
-    text_square.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+    def change_lang(self, lang):
+        self.lang = lang
+        self.update_texts()
 
-    if isinstance(result, Exception):
-        text_square.insert(tk.END, f"Error durante el escaneo:\n{str(result)}")
-    else:
-        text_square.insert(tk.END, "Salida estándar:\n")
-        text_square.insert(tk.END, result.stdout)
-        text_square.insert(tk.END, "\nSalida de error:\n")
-        text_square.insert(tk.END, result.stderr)
+    def update_texts(self):
+        self.root.title(self.texts[self.lang]['app_title'])
+        self.tabs_notebook.tab(0, text=self.texts[self.lang]["tab1"])
+        self.tabs_notebook.tab(1, text=self.texts[self.lang]["tab2"])
+        self.tabs_notebook.tab(2, text=self.texts[self.lang]["tab3"])
+        self.tabs_notebook.tab(3, text=self.texts[self.lang]["tab4"])
 
-        filepath = save_scan_result(result)
-        messagebox.showinfo("Escaneo completado", f"Resultado guardado en: {filepath}")
+        self.button_scan_a_file.config(text=self.texts[self.lang]["button_label1"])
+        self.button_scan_a_directory.config(text=self.texts[self.lang]["button_label2"])
+        self.button_view_history.config(text=self.texts[self.lang]["button_label3"])
+        self.button_update_database.config(text=self.texts[self.lang]["button_label4"])
 
-    text_square.config(state="disabled")
-    tk.Label(newWindow, text="Escaneo completado", fg="green").pack()
+        self.checkbox_recursive.config(text=self.texts[self.lang]["checkbox_label1"])
+        self.checkbox_kill.config(text=self.texts[self.lang]["checkbox_label2"])
 
-def start_scan(title, filetypes=None, initialdir=None, is_file=True):
-    path = askopenfilename(title=title, filetypes=filetypes, initialdir=initialdir) if is_file else askdirectory(title=title, initialdir=initialdir)
+    def run_scan(self, path):
+        args = ['clamscan']
 
-    if path:
-        newWindow = tk.Toplevel(root)
-        newWindow.title("Resultado del escaneo")
-        newWindow.geometry(f"+{x}+{y}")
+        if self.checkbox_var_recursive.get() == 1:
+            args.append('-r')
 
-        label = ttk.Label(newWindow, text=f"Escaneando: {path}", justify="left", wraplength=280)
-        label.pack(padx=10, pady=10)
-        progressbar = ttk.Progressbar(newWindow, mode="indeterminate")
-        progressbar.pack(fill=tk.X, padx=10, pady=10)
-        progressbar.start(10)
+        if self.checkbox_var_kill.get() == 1:
+            args.append('--remove')
 
-        threading.Thread(target=run_scan, args=(path, result_queue), daemon=True).start()
-        root.after(100, check_scan_status, progressbar, newWindow, result_queue)
+        args.append(path)
 
-def scan_a_file():
-    start_scan(
-        title="Selecciona un archivo",
-        filetypes=[
-            ("Todos los archivos", "*.*"),
-            ("Archivos de texto", "*.txt"),
-            ("Archivos de imagen", "*.png *.jpg *.jpeg"),
-        ],
-        initialdir=os.path.expanduser("~"),
-        is_file=True
-    )
+        try:
+            result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            self.result_queue.put(result)
+        except Exception as e:
+            self.result_queue.put(e)
 
-def scan_a_directory():
-    start_scan(
-        title="Selecciona un directorio",
-        initialdir=os.path.expanduser("~"),
-        is_file=False
-    )
-
-def view_history():
-    history_files = os.listdir(history_dir)
-
-    if not history_files:
-        messagebox.showinfo("Historial", "No hay archivos de historial disponibles.")
-        return
-
-    history_window = tk.Toplevel(root)
-    history_window.title("Historial de escaneos")
-    history_window.geometry(f"+{x}+{y}")
-
-    listbox = tk.Listbox(history_window, font=("Courier New", 12))
-    listbox.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-
-    for file in sorted(history_files, reverse=False):
-        listbox.insert(tk.END, file)
-
-    def open_selected_file(e):
-        selected_index = listbox.curselection()
-        if not selected_index:
+    def check_scan_status(self, progressbar, newWindow):
+        try:
+            result = self.result_queue.get_nowait()
+        except queue.Empty:
+            self.root.after(100, self.check_scan_status, progressbar, newWindow)
             return
 
-        selected_file = listbox.get(selected_index)
-        filepath = os.path.join(history_dir, selected_file)
+        progressbar.stop()
+        progressbar.destroy()
 
-        with open(filepath, "r", encoding="utf-8") as f:
-            content = f.read()
-
-        result_window = tk.Toplevel(root)
-        result_window.title(f"Historial: {selected_file}")
-        result_window.geometry(f"+{x}+{y}")
-
-        text_square = tk.Text(result_window, wrap=tk.WORD, font=("Courier New", 12))
+        text_square = tk.Text(newWindow, wrap=tk.WORD, font=("Courier New", 12))
         text_square.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        text_square.insert(tk.END, content)
-        text_square.config(state="disabled")
 
-    history_window.bind('<Double-Button-1>', open_selected_file)
-
-    open_button = ttk.Button(history_window, text="Abrir resultado", command=open_selected_file)
-    open_button.pack(pady=10)
-
-def update_database():
-    result = subprocess.run(["sudo", "freshclam"], capture_output=True, text=True)
-
-    if "Failed to lock the log file" in result.stderr:
-        label_version["text"] = ("El proceso de actualización de la base de datos se gestiona automáticamente y "
-                                 "se ejecuta en segundo plano. No es necesario invocarlo manualmente.")
-    
-    elif result.returncode != 0:
-        label_version["text"] = f"Error al actualizar la base de datos:\n{result.stderr}"
-        print(result.stderr)
-    
-    else:
-        label_version["text"] = "La base de datos se actualizó correctamente."
-
-    if "Problem with internal logger" in result.stderr or result.returncode == 0:
-        label_version["text"] = ("La base de datos ya está actualizada y se gestiona automáticamente en segundo plano. "
-                                 "No es necesario actualizarla manualmente.")
-
-def get_version():
-    try:
-        result = subprocess.run(["clamscan", "--version"], capture_output=True, text=True)
-        if result.returncode == 0:
-      
-            # ClamAV 0.103.12/27575/Wed Mar 12 05:37:42 2025
-            first_line = result.stdout.strip().split("\n")[0]
-         
-            # Esto asume que el formato es: "ClamAV <versión>/<algo>/<fecha string>"
-            parts = first_line.split("/")
-            if len(parts) >= 3:
-                version_full = parts[0].replace("ClamAV", "").strip()
-                version_date_str = parts[2].strip()
-            
-                fecha_version = datetime.strptime(version_date_str, "%a %b %d %H:%M:%S %Y")
-                label_version["text"] = f"Versión de ClamAV: {version_full}\nBase de datos actualizada el: {fecha_version}"
-                version_date_formatted = fecha_version.strftime("%Y-%m-%d")
-                current_date = datetime.now().strftime("%Y-%m-%d")
-                
-                print("Fecha actual:", current_date)
-                print("Fecha de version:", version_date_formatted)
-                
-                if current_date == version_date_formatted:
-                    button_update_database.config(state="disabled")
-                    button_update_database["text"] = "Base de datos actualizada"
-                else:
-                    button_update_database.config(state="normal")
-            else:
-                label_version["text"] = "Formato de versión inesperado."
+        if isinstance(result, Exception):
+            text_square.insert(tk.END, f"{self.texts[self.lang]['error_message']}:\n{str(result)}")
         else:
-            label_version["text"] = "No se pudo obtener la versión de ClamAV."
-    except Exception as e:
-        label_version["text"] = f"Error: {e}"
+            text_square.insert(tk.END, f"{self.texts[self.lang]['stdout']}:\n")
+            text_square.insert(tk.END, result.stdout)
+            text_square.insert(tk.END, f"\n{self.texts[self.lang]['stderr']}:\n")
+            text_square.insert(tk.END, result.stderr)
 
-tabs_notebook = ttk.Notebook(root)
-tabs_notebook.pack(fill="both", expand=True, pady=5, padx=5)
+            filepath = self.save_scan_result(result)
+            messagebox.showinfo(self.texts[self.lang]['scan_complete'], f"{self.texts[self.lang]['result_saved']} {filepath}")
 
-scan_frame = ttk.Frame(tabs_notebook)
-history_frame = ttk.Frame(tabs_notebook)
-update_frame = ttk.Frame(tabs_notebook)
-config_frame = ttk.Frame(tabs_notebook)
+        text_square.config(state="disabled")
+        tk.Label(newWindow, text=self.texts[self.lang]['scan_complete'], fg="green").pack()
 
-tabs_notebook.add(scan_frame, text="Escanear")
-tabs_notebook.add(history_frame, text="Histórico")
-tabs_notebook.add(update_frame, text="Actualizaciones")
-tabs_notebook.add(config_frame, text="Config.")
+    def save_scan_result(self, result):
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"{timestamp}.txt"
+        filepath = self.history_dir / filename
 
-button_scan_a_file = ttk.Button(scan_frame, text="Escanear un archivo", command=scan_a_file)
-button_scan_a_file.pack(fill="x", pady=10, padx=10)
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write("Salida estándar:\n")
+            f.write(result.stdout)
+            f.write("\n\nSalida de error:\n")
+            f.write(result.stderr)
 
-button_scan_a_directory = ttk.Button(scan_frame, text="Escanear un directorio", command=scan_a_directory)
-button_scan_a_directory.pack(fill="x", pady=5, padx=10)
+        return filepath
 
-button_view_history = ttk.Button(history_frame, text="Ver historial de escaneos", command=view_history)
-button_view_history.pack(fill="x", pady=10, padx=10)
+    def start_scan(self, title, filetypes=None, initialdir=None, is_file=True):
+        path = askopenfilename(title=title, filetypes=filetypes, initialdir=initialdir) if is_file else askdirectory(title=title, initialdir=initialdir)
 
-button_update_database = ttk.Button(update_frame, text="Actualizar base de datos", command=update_database)
-button_update_database.pack(fill="x", padx=10, pady=10)
+        if path:
+            newWindow = tk.Toplevel(self.root)
+            newWindow.title(self.texts[self.lang]['scan_complete'])
+            self.center_window()
 
-label_version = ttk.Label(update_frame, text="", wraplength=270)
-label_version.pack(padx=10, pady=10)
+            label = ttk.Label(newWindow, text=f"{self.texts[self.lang]['loading_message']} {path}", justify="left", wraplength=280)
+            label.pack(padx=10, pady=10)
 
-get_version()
+            progressbar = ttk.Progressbar(newWindow, mode="indeterminate")
+            progressbar.pack(fill=tk.X, padx=10, pady=10)
+            progressbar.start(10)
 
-checkbox_var_recursive = tk.IntVar(value=1)
+            threading.Thread(target=self.run_scan, args=(path,), daemon=True).start()
+            self.root.after(100, self.check_scan_status, progressbar, newWindow)
 
-checkbox_recursive = tk.Checkbutton(config_frame, text="Buscar amenazas de manera recursiva", variable=checkbox_var_recursive)
-checkbox_recursive.pack(pady=20)
+    def scan_a_file(self):
+        self.start_scan(
+            title=self.texts[self.lang]['select_file'],
+            filetypes=[
+                (self.texts[self.lang]['all_files'], "*.*"),
+                (self.texts[self.lang]['text_files'], "*.txt"),
+                (self.texts[self.lang]['image_files'], "*.png *.jpg *.jpeg"),
+            ],
+            initialdir=os.path.expanduser("~"),
+            is_file=True
+        )
 
-root.mainloop()
+    def scan_a_directory(self):
+        self.start_scan(
+            title=self.texts[self.lang]['select_directory'],
+            initialdir=os.path.expanduser("~"),
+            is_file=False
+        )
+
+    def view_history(self):
+        history_files = os.listdir(self.history_dir)
+
+        if not history_files:
+            messagebox.showinfo("Historial", self.texts[self.lang]['no_history_files'])
+            return
+
+        history_window = tk.Toplevel(self.root)
+        history_window.title(self.texts[self.lang]['history_title'])
+        self.center_window()
+
+        listbox = tk.Listbox(history_window, font=("Courier New", 12))
+        listbox.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        for file in sorted(history_files, reverse=False):
+            listbox.insert(tk.END, file)
+
+        def open_selected_file(e=None):
+            selected_index = listbox.curselection()
+            if not selected_index:
+                return
+
+            selected_file = listbox.get(selected_index)
+            filepath = self.history_dir / selected_file
+
+            with open(filepath, "r", encoding="utf-8") as f:
+                content = f.read()
+
+            result_window = tk.Toplevel(self.root)
+            result_window.title(f"{self.texts[self.lang]['history_title']}: {selected_file}")
+            self.center_window()
+
+            text_square = tk.Text(result_window, wrap=tk.WORD, font=("Courier New", 12))
+            text_square.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            text_square.insert(tk.END, content)
+            text_square.config(state="disabled")
+
+        history_window.bind('<Double-Button-1>', open_selected_file)
+
+        open_button = ttk.Button(history_window, text=self.texts[self.lang]['open_result'], command=open_selected_file)
+        open_button.pack(pady=10)
+
+    def update_database(self):
+        result = subprocess.run(["sudo", "freshclam"], capture_output=True, text=True)
+
+        if "Failed to lock the log file" in result.stderr:
+            self.label_version["text"] = self.texts[self.lang]['database_locked']
+        elif result.returncode != 0:
+            self.label_version["text"] = f"{self.texts[self.lang]['database_update_error']}\n{result.stderr}"
+        else:
+            self.label_version["text"] = self.texts[self.lang]['database_updated']
+
+        if "Problem with internal logger" in result.stderr or result.returncode == 0:
+            self.label_version["text"] = self.texts[self.lang]['database_up_to_date']
+
+    def get_version(self):
+        try:
+            result = subprocess.run(["clamscan", "--version"], capture_output=True, text=True)
+
+            if result.returncode == 0:
+                first_line = result.stdout.strip().split("\n")[0]
+                parts = first_line.split("/")
+                if len(parts) >= 3:
+                    version_full = parts[0].replace("ClamAV", "").strip()
+                    version_date_str = parts[2].strip()
+
+                    fecha_version = datetime.strptime(version_date_str, "%a %b %d %H:%M:%S %Y")
+                    version_date_formatted = fecha_version.strftime("%Y-%m-%d")
+                    current_date = datetime.now().strftime("%Y-%m-%d")
+
+                    self.label_version["text"] = (f"{self.texts[self.lang]['version_label']} {version_full}\n"
+                                                 f"{self.texts[self.lang]['database_updated_on']} {fecha_version}")
+
+                    if current_date == version_date_formatted:
+                        self.button_update_database.config(state="disabled")
+                        self.button_update_database["text"] = self.texts[self.lang]['database_updated']
+                    else:
+                        self.button_update_database.config(state="normal")
+                else:
+                    self.label_version["text"] = self.texts[self.lang]['unexpected_version_format']
+            else:
+                self.label_version["text"] = self.texts[self.lang]['version_fetch_error']
+        except Exception as e:
+            self.label_version["text"] = f"{self.texts[self.lang]['generic_error']} {e}"
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = ClamAVScanner(root)
+    root.mainloop()
