@@ -154,18 +154,35 @@ class ClamAVScanner:
         window.geometry(f"+{x-marginx}+{y-marginy}")
 
     def create_menu(self):
-        menu_bar = tk.Menu(self.root)
-        self.root.config(menu=menu_bar)
-        
-        language_menu = tk.Menu(menu_bar, tearoff=0)
-        language_menu.add_command(label=self.texts[self.lang]["language_menu1"], command=lambda: self.change_lang("en"))
-        language_menu.add_command(label=self.texts[self.lang]["language_menu2"], command=lambda: self.change_lang("es"))
+        if hasattr(self, "menu_bar"):
+            self.menu_bar.destroy()
 
-        help_menu = tk.Menu(menu_bar, tearoff=0)
-        help_menu.add_command(label=self.texts[self.lang]["help_menu1"])
+        self.menu_bar = tk.Menu(self.root)
+        self.root.config(menu=self.menu_bar)
 
-        menu_bar.add_cascade(label=self.texts[self.lang]["menu_bar1"], menu=language_menu)
-        menu_bar.add_cascade(label=self.texts[self.lang]["menu_bar2"], menu=help_menu)
+        self.language_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.language_menu.add_command(
+            label=self.texts[self.lang]["language_menu1"],
+            command=lambda: self.change_lang("en")
+        )
+        self.language_menu.add_command(
+            label=self.texts[self.lang]["language_menu2"],
+            command=lambda: self.change_lang("es")
+        )
+
+        self.help_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.help_menu.add_command(
+            label=self.texts[self.lang]["help_menu1"]
+        )
+
+        self.menu_bar.add_cascade(
+            label=self.texts[self.lang]["menu_bar1"],
+            menu=self.language_menu
+        )
+        self.menu_bar.add_cascade(
+            label=self.texts[self.lang]["menu_bar2"],
+            menu=self.help_menu
+        )
 
     def create_tabs(self):
         self.tabs_notebook = ttk.Notebook(self.root)
@@ -213,6 +230,7 @@ class ClamAVScanner:
 
     def update_texts(self):
         self.root.title(self.texts[self.lang]['app_title'])
+
         self.tabs_notebook.tab(0, text=self.texts[self.lang]["tab1"])
         self.tabs_notebook.tab(1, text=self.texts[self.lang]["tab2"])
         self.tabs_notebook.tab(2, text=self.texts[self.lang]["tab3"])
@@ -225,6 +243,9 @@ class ClamAVScanner:
 
         self.checkbox_recursive.config(text=self.texts[self.lang]["checkbox_label1"])
         self.checkbox_kill.config(text=self.texts[self.lang]["checkbox_label2"])
+
+        self.create_menu()
+        
 
     def run_scan(self, path):
         args = ['clamscan']
