@@ -13,7 +13,7 @@ VERSION = "0.0.9"
 
 class ClamAVScanner:
     def __init__(self, root):
-        self.root = root
+        self.root = root 
         self.lang = "en"
         self.texts = self.load_texts()
         self.result_queue = queue.Queue()
@@ -74,7 +74,8 @@ class ClamAVScanner:
                 "loading_message": "Cargando, por favor espere...",
                 "error_message": "Hubo un error. Por favor, intente nuevamente.",
                 "about_message": "ClamAV Tkinter es una interfaz gráfica para el escaneo de archivos y directorios usando el motor ClamAV.",
-                "scan_complete": "Escaneo",
+                "scan":"Escaneando",
+                "scan_complete": "Escaneo Completado",
                 "stdout": "Salida estándar",
                 "stderr": "Salida de error",
                 "result_saved": "Resultado guardado en",
@@ -128,7 +129,8 @@ class ClamAVScanner:
                 "loading_message": "Loading, please wait...",
                 "error_message": "An error occurred. Please try again.",
                 "about_message": "ClamAV Tkinter is a graphical interface for scanning files and directories using the ClamAV engine.",
-                "scan_complete": "Scan",
+                "scan":"Scanning",
+                "scan_complete": "Scan Complete",
                 "stdout": "Standard output",
                 "stderr": "Error output",
                 "result_saved": "Result saved at",
@@ -302,6 +304,8 @@ class ClamAVScanner:
 
         progressbar.stop()
         progressbar.destroy()
+        
+        newWindow.title(self.texts[self.lang]['scan_complete'])
 
         self.center_window(newWindow, 500, 250)
 
@@ -346,7 +350,7 @@ class ClamAVScanner:
 
         if path:
             newWindow = tk.Toplevel(self.root)
-            newWindow.title(self.texts[self.lang]['scan_complete'])
+            newWindow.title(self.texts[self.lang]['scan'])
             self.center_window(newWindow, 200, 150)
 
             label = ttk.Label(
