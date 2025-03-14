@@ -331,7 +331,7 @@ class ClamAVScanner:
 
         history_window = tk.Toplevel(self.root)
         history_window.title(self.texts[self.lang]['history_title'])
-        self.center_window()
+        self.center_window(history_window,200,100)
 
         listbox = tk.Listbox(history_window, font=("Courier New", 12))
         listbox.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
@@ -352,7 +352,7 @@ class ClamAVScanner:
 
             result_window = tk.Toplevel(self.root)
             result_window.title(f"{self.texts[self.lang]['history_title']}: {selected_file}")
-            self.center_window()
+            self.center_window(result_window,100,200)
 
             text_square = tk.Text(result_window, wrap=tk.WORD, font=("Courier New", 12))
             text_square.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
