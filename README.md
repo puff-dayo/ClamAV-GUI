@@ -48,14 +48,12 @@ sudo apt install python3-tk
 ```
 
 ## Imagenes
-![Image](https://github.com/user-attachments/assets/14e15cd1-5287-44f7-a1f0-b1a20888f334)
+![Image](https://github.com/user-attachments/assets/1057823b-5324-434e-9b37-f134be7aaaf2)
 
-  
+![Image](https://github.com/user-attachments/assets/e541c2ad-cd09-4ae6-96be-8827b03b308c)
 
-![Image](https://github.com/user-attachments/assets/dbd546d2-a4bc-4839-add4-f313425ff0b7)
+![Image](https://github.com/user-attachments/assets/4fa714a2-f41f-43d0-9759-e19c748c8af2)
 
-  
-
-![Image](https://github.com/user-attachments/assets/1c0215bc-d4f9-4dc4-8dc4-a5014a95cacc)
+![Image](https://github.com/user-attachments/assets/cb7f14ff-f673-4dbc-ba44-5571d5214ee7)
 
 Crédito del icono: [diamonjohn en Openclipart](https://openclipart.org/artist/diamonjohn)
