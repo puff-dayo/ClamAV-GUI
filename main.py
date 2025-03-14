@@ -294,52 +294,52 @@ class ClamAVScanner:
         except Exception as e:
             self.result_queue.put(e)
 
-    def check_scan_status(self, progressbar, newWindow):
+    def check_scan_status(self, progressbar, newWindow, label_loading):
         try:
             result = self.result_queue.get_nowait()
         except queue.Empty:
-            self.root.after(100, self.check_scan_status,
-                            progressbar, newWindow)
+            self.root.after(100, self.check_scan_status, progressbar, newWindow, label_loading)
             return
 
-        progressbar.stop()
-        progressbar.destroy()
-        
-        newWindow.title(self.texts[self.lang]['scan_complete'])
+        if progressbar.winfo_exists():
+            progressbar.stop()
+            progressbar.destroy()
 
+        if label_loading.winfo_exists():
+            label_loading.destroy()
+
+        newWindow.title(self.texts[self.lang]['scan_complete'])
         self.center_window(newWindow, 500, 250)
 
-        text_square = tk.Text(newWindow, wrap=tk.WORD,
-                              font=("Courier New", 12))
+        text_square = tk.Text(newWindow, wrap=tk.WORD, font=("Courier New", 12))
         text_square.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         if isinstance(result, Exception):
-            text_square.insert(
-                tk.END, f"{self.texts[self.lang]['error_message']}:\n{str(result)}")
+            text_square.insert(tk.END, f"{self.texts[self.lang]['error_message']}:\n{str(result)}")
         else:
             text_square.insert(tk.END, f"{self.texts[self.lang]['stdout']}:\n")
             text_square.insert(tk.END, result.stdout)
-            text_square.insert(
-                tk.END, f"\n{self.texts[self.lang]['stderr']}:\n")
+            text_square.insert(tk.END, f"\n{self.texts[self.lang]['stderr']}:\n")
             text_square.insert(tk.END, result.stderr)
 
             filepath = self.save_scan_result(result)
             messagebox.showinfo(self.texts[self.lang]['scan_complete'],
                                 f"{self.texts[self.lang]['result_saved']} {filepath}")
 
-        text_square.config(state="disabled")
-        tk.Label(newWindow, text=self.texts[self.lang]
-                 ['scan_complete'], fg="green").pack()
-
+        try:
+            text_square.config(state="disabled")
+        except tk.TclError as e:
+            print(f"Error configuring text widget: {e}")
+        
     def save_scan_result(self, result):
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"{timestamp}.txt"
         filepath = self.history_dir / filename
 
         with open(filepath, "w", encoding="utf-8") as f:
-            f.write("Salida estándar:\n")
+            f.write(f"{self.texts[self.lang]['stdout']}:\n")
             f.write(result.stdout)
-            f.write("\n\nSalida de error:\n")
+            f.write(f"\n{self.texts[self.lang]['stderr']}:\n")
             f.write(result.stderr)
 
         return filepath
@@ -353,9 +353,9 @@ class ClamAVScanner:
             newWindow.title(self.texts[self.lang]['scan'])
             self.center_window(newWindow, 200, 150)
 
-            label = ttk.Label(
-                newWindow, text=f"{self.texts[self.lang]['loading_message']} {path}", justify="left", wraplength=280)
-            label.pack(padx=10, pady=10)
+            label_loading = ttk.Label(
+                newWindow, text=f"{self.texts[self.lang]['scan']} {path}", justify="left", wraplength=280)
+            label_loading.pack(padx=10, pady=10)
 
             progressbar = ttk.Progressbar(newWindow, mode="indeterminate")
             progressbar.pack(fill=tk.X, padx=10, pady=10)
@@ -364,7 +364,7 @@ class ClamAVScanner:
             threading.Thread(target=self.run_scan,
                              args=(path,), daemon=True).start()
             self.root.after(100, self.check_scan_status,
-                            progressbar, newWindow)
+                            progressbar, newWindow,label_loading)
 
     def scan_a_file(self):
         self.start_scan(
@@ -421,7 +421,7 @@ class ClamAVScanner:
         listbox = tk.Listbox(history_window, font=("Courier New", 12))
         listbox.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        for file in sorted(history_files, reverse=False):
+        for file in sorted(history_files, reverse=True):
             listbox.insert(tk.END, file)
 
         def open_selected_file(e=None):
