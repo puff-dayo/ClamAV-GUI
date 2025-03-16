@@ -28,9 +28,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install uv
+        pip install pyinstaller
         uv sync
     - name: Running Pyinstaller
-      run: python -m pyinstaller -F -n ClamAVTk -w --add-data "util;util" --add-data "res;res" --icon="res/shield.png" "main.py"
+      run: pyinstaller -F -n ClamAVTk -w --add-data "util;util" --add-data "res;res" --icon="res/shield.png" "main.py"
     - name: Upload files
       uses: actions/upload-artifact@v4
       with:
