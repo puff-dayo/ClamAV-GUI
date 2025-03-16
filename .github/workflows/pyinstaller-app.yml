@@ -32,7 +32,7 @@ jobs:
         pip install pillow
         uv sync
     - name: Running Pyinstaller
-      run: pyinstaller -F -n ClamAVTk -w --add-data "util;util" --add-data "res;res" --icon="res/shield.png" "main.py"
+      run: pyinstaller -F -n ClamAVTk -w --hidden-import darkdetect --add-data "util;util" --add-data "res;res" --icon="res/shield.png" "main.py"
     - name: Upload files
       uses: actions/upload-artifact@v4
       with:
