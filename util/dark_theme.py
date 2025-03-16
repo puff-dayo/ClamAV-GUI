@@ -1,35 +1,18 @@
-import platform
-
-import darkdetect
 import ctypes as ct
 
 
-def refresh_window(window, dx=1, dy=1):
-    current_geometry = window.geometry()
-    new_width = current_geometry.width() + dx
-    new_height = current_geometry.height() + dy
-    window.setGeometry(current_geometry.x(), current_geometry.y(), new_width, new_height)
-    window.setGeometry(current_geometry.x(), current_geometry.y(), current_geometry.width(),
-                     current_geometry.height())
-
-def dark_title_bar(hwnd, use_dark_mode=False):
-    if platform.system() != "Windows":
-        print("Dark mode is only supported on Windows.")
-        return
-
+def dark_title_bar(window):
+    """
+    MORE INFO:
+    https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
+    """
+    window.update()
     DWMWA_USE_IMMERSIVE_DARK_MODE = 20
     set_window_attribute = ct.windll.dwmapi.DwmSetWindowAttribute
+    get_parent = ct.windll.user32.GetParent
+    hwnd = get_parent(window.winfo_id())
     rendering_policy = DWMWA_USE_IMMERSIVE_DARK_MODE
-    value = 1 if use_dark_mode else 0
+    value = 2
     value = ct.c_int(value)
-    result = set_window_attribute(hwnd, rendering_policy, ct.byref(value), ct.sizeof(value))
-    if result != 0:
-        print(f"Failed to set dark mode: {result}")
-
-def set_dark_bar(window):
-    winId = window.winId()
-    dark_title_bar(winId, use_dark_mode=darkdetect.isDark())
-
-def apply_dark(window):
-    set_dark_bar(window)
-    refresh_window(window)
+    set_window_attribute(hwnd, rendering_policy, ct.byref(value),
+                         ct.sizeof(value))

@@ -9,19 +9,23 @@ from tkinter import PhotoImage
 from tkinter import ttk, messagebox
 from tkinter.filedialog import askopenfilename, askdirectory
 
+import darkdetect
+import ttkthemes
+from ttkthemes.themed_tk import ThemedTk
+
 from util.app_path_helper import EXE_PATH, RES_PATH
+from util.dark_theme import dark_title_bar
 
 VERSION = "0.0.10"
 
 
-class ClamAVScanner:
+class ClamAVScanner():
     def __init__(self, _root):
         self.root = _root
         self.lang = "en"
         self.texts = self.load_texts()
         self.result_queue = queue.Queue()
 
-        # self.script_dir = os.path.dirname(os.path.realpath(__file__))
         self.history_dir = os.path.join(EXE_PATH, "history")
         os.makedirs(self.history_dir, exist_ok=True)
         self.icon_path = os.path.join(RES_PATH, "shield.png")
@@ -149,7 +153,7 @@ class ClamAVScanner:
         self.root.title(self.texts[self.lang]['app_title'])
         self.root.resizable(False, False)
         self.center_window()
-        self.create_menu()
+        # self.create_menu()
         self.create_tabs()
         self.create_buttons()
         self.create_checkboxes()
@@ -201,7 +205,7 @@ class ClamAVScanner:
 
     def create_tabs(self):
         self.tabs_notebook = ttk.Notebook(self.root)
-        self.tabs_notebook.pack(fill="both", expand=True, pady=10, padx=5)
+        self.tabs_notebook.pack(fill="both", expand=True, pady=0, padx=0)
 
         self.scan_frame = ttk.Frame(self.tabs_notebook)
         self.history_frame = ttk.Frame(self.tabs_notebook)
@@ -242,9 +246,9 @@ class ClamAVScanner:
         self.checkbox_var_recursive = tk.IntVar(value=1)
         self.checkbox_var_kill = tk.IntVar(value=0)
 
-        self.checkbox_recursive = tk.Checkbutton(
+        self.checkbox_recursive = ttk.Checkbutton(
             self.config_frame, text=self.texts[self.lang]['recursive_search'], variable=self.checkbox_var_recursive)
-        self.checkbox_kill = tk.Checkbutton(
+        self.checkbox_kill = ttk.Checkbutton(
             self.config_frame, text=self.texts[self.lang]['delete_threats'], variable=self.checkbox_var_kill)
 
         self.checkbox_recursive.pack(pady=5, padx=5, anchor="w")
@@ -277,7 +281,7 @@ class ClamAVScanner:
         self.checkbox_kill.config(
             text=self.texts[self.lang]["checkbox_label2"])
 
-        self.create_menu()
+        # self.create_menu()
 
     def run_scan(self, path):
         args = ['clamscan']
@@ -396,12 +400,12 @@ class ClamAVScanner:
         about_image_original = tk.PhotoImage(file=self.icon_path)
         about_image = about_image_original.subsample(3, 3)
 
-        image_label = tk.Label(about_window, image=about_image)
+        image_label = ttk.Label(about_window, image=about_image)
         image_label.image = about_image  # ¡Importante! Mantener la referencia a la imagen.
         image_label.pack(pady=10)
 
-        label_version = tk.Label(about_window, text=f"{self.texts[self.lang]['version']} {VERSION}")
-        label_about = tk.Label(
+        label_version = ttk.Label(about_window, text=f"{self.texts[self.lang]['version']} {VERSION}")
+        label_about = ttk.Label(
             about_window,
             text=self.texts[self.lang]['about'],
             wraplength=280
@@ -504,7 +508,20 @@ class ClamAVScanner:
 
 if __name__ == "__main__":
     windll.shcore.SetProcessDpiAwareness(1)
+    if darkdetect.isLight():
+        mode = "light"
+        root = ThemedTk(theme="arc")
+        style = ttkthemes.ThemedStyle(root)
+        style.set_theme("arc")
+    else:
+        mode = "dark"
+        root = ThemedTk(theme="equilux")
+        style = ttkthemes.ThemedStyle(root)
+        style.set_theme("equilux")
 
-    root = tk.Tk()
-    app = ClamAVScanner(root)
+    root.geometry("356x522")
+    app = ClamAVScanner(_root=root)
+    if mode == "dark":
+        dark_title_bar(root)
+
     root.mainloop()
