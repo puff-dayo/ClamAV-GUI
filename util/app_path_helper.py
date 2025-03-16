@@ -25,8 +25,16 @@ def find_clamav():
             else:
                 return False
 
+        def check_and_write(file_path, content):
+            if not os.path.exists(file_path):
+                with open(file_path, 'w') as f:
+                    f.write(content)
+                return True
+            else:
+                return False
+
         check_and_create(os.path.join(path, "clamd.conf"))
-        check_and_create(os.path.join(path, "freshclam.conf"))
+        check_and_write(os.path.join(path, "freshclam.conf"), "DatabaseMirror database.clamav.net")
 
     for drive in string.ascii_uppercase[2:]:
         path = f"{drive}:\\Program Files\\{dir_name}"
@@ -36,8 +44,6 @@ def find_clamav():
             init_clamav(path)
             return path
 
-
-CLAM_PATH = find_clamav()
 
 if __name__ == '__main__':
     print(EXE_PATH)

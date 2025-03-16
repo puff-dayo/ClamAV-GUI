@@ -13,8 +13,9 @@ import darkdetect
 import ttkthemes
 from ttkthemes.themed_tk import ThemedTk
 
-from util.app_path_helper import EXE_PATH, RES_PATH
+from util.app_path_helper import EXE_PATH, RES_PATH, find_clamav
 from util.dark_theme import dark_title_bar
+from util.request_uac import request_uac_or_skip
 
 VERSION = "0.0.10"
 
@@ -130,7 +131,7 @@ class ClamAVScanner():
                 "database_updated_on": "Database updated on:",
                 "current_date": "Current date",
                 "version_date": "Version date",
-                "unexpected_version_format": "Unexpected version format.",
+                "unexpected_version_format": "Database not exist or unexpected version format.",
                 "version_fetch_error": "Failed to fetch ClamAV version.",
                 "generic_error": "Error:",
                 "loading_message": "Loading, please wait...",
@@ -158,6 +159,7 @@ class ClamAVScanner():
         self.create_buttons()
         self.create_checkboxes()
         self.get_version()
+        self.get_main_version()
 
     def center_window(self, window=None, marginx=100, marginy=100):
         if window is None:
@@ -241,6 +243,10 @@ class ClamAVScanner():
         self.label_version = ttk.Label(
             self.update_frame, text="", wraplength=280)
         self.label_version.pack(padx=10, pady=10)
+
+        self.main_version = ttk.Label(
+            self.scan_frame, text="", wraplength=280)
+        self.main_version.pack(padx=10, pady=10)
 
     def create_checkboxes(self):
         self.checkbox_var_recursive = tk.IntVar(value=1)
@@ -459,7 +465,27 @@ class ClamAVScanner():
             history_window, text=self.texts[self.lang]['open_result'], command=open_selected_file)
         open_button.pack(pady=10)
 
+    # def update_database(self):
+    #     result = subprocess.run(["freshclam"],
+    #                             capture_output=True, text=True)
+    #
+    #     if "Failed to lock the log file" in result.stderr:
+    #         self.label_version["text"] = self.texts[self.lang]['database_locked']
+    #     elif result.returncode != 0:
+    #         self.label_version["text"] = f"{self.texts[self.lang]['database_update_error']}\n{result.stderr}"
+    #     else:
+    #         self.label_version["text"] = self.texts[self.lang]['database_updated']
+    #
+    #     if "Problem with internal logger" in result.stderr or result.returncode == 0:
+    #         self.label_version["text"] = self.texts[self.lang]['database_up_to_date']
+
     def update_database(self):
+        self.button_update_database['state'] = tk.DISABLED
+        thread = threading.Thread(target=self._update_database)
+        thread.start()
+
+    def _update_database(self):
+        self.label_version["text"] = "Database downloading, please wait."
         result = subprocess.run(["freshclam"],
                                 capture_output=True, text=True)
 
@@ -472,42 +498,87 @@ class ClamAVScanner():
 
         if "Problem with internal logger" in result.stderr or result.returncode == 0:
             self.label_version["text"] = self.texts[self.lang]['database_up_to_date']
+        self.button_update_database['state'] = tk.NORMAL
 
     def get_version(self):
-        try:
-            result = subprocess.run(
-                ["freshclam", "--version"], capture_output=True, text=True)
+        def run_version_fetch():
+            try:
+                result = subprocess.run(
+                    ["freshclam", "--version"], capture_output=True, text=True)
 
-            if result.returncode == 0:
-                first_line = result.stdout.strip().split("\n")[0]
-                parts = first_line.split("/")
-                if len(parts) >= 3:
-                    version_full = parts[0].replace("ClamAV", "").strip()
-                    version_date_str = parts[2].strip()
+                if result.returncode == 0:
+                    first_line = result.stdout.strip().split("\n")[0]
+                    parts = first_line.split("/")
+                    if len(parts) >= 3:
+                        version_full = parts[0].replace("ClamAV", "").strip()
+                        version_date_str = parts[2].strip()
 
-                    date_version = datetime.strptime(
-                        version_date_str, "%a %b %d %H:%M:%S %Y")
-                    version_date_formatted = date_version.strftime("%Y-%m-%d")
-                    current_date = datetime.now().strftime("%Y-%m-%d")
+                        date_version = datetime.strptime(
+                            version_date_str, "%a %b %d %H:%M:%S %Y")
+                        version_date_formatted = date_version.strftime("%Y-%m-%d")
+                        current_date = datetime.now().strftime("%Y-%m-%d")
 
-                    self.label_version["text"] = (f"{self.texts[self.lang]['version_label']} {version_full}\n"
-                                                  f"{self.texts[self.lang]['database_updated_on']} {date_version}")
+                        self.label_version["text"] = (f"{self.texts[self.lang]['version_label']} {version_full}\n"
+                                                      f"{self.texts[self.lang]['database_updated_on']} {date_version}")
 
-                    if current_date == version_date_formatted:
-                        self.button_update_database.config(state="disabled")
-                        self.button_update_database["text"] = self.texts[self.lang]['database_updated']
+                        if current_date == version_date_formatted:
+                            self.button_update_database.config(state="disabled")
+                            self.button_update_database["text"] = self.texts[self.lang]['database_updated']
+                        else:
+                            self.button_update_database.config(state="normal")
                     else:
-                        self.button_update_database.config(state="normal")
+                        self.label_version["text"] = self.texts[self.lang]['unexpected_version_format']
                 else:
-                    self.label_version["text"] = self.texts[self.lang]['unexpected_version_format']
-            else:
-                self.label_version["text"] = self.texts[self.lang]['version_fetch_error']
-        except Exception as e:
-            self.label_version["text"] = f"{self.texts[self.lang]['generic_error']} {e}"
+                    self.label_version["text"] = self.texts[self.lang]['version_fetch_error']
+            except Exception as e:
+                self.label_version["text"] = f"{self.texts[self.lang]['generic_error']} {e}"
+            finally:
+                self.root.update_idletasks()
+
+        threading.Thread(target=run_version_fetch, daemon=True).start()
+        self.root.update_idletasks()
+
+    def get_main_version(self):
+        def run_version_fetch():
+            try:
+                result = subprocess.run(
+                    ["freshclam", "--version"], capture_output=True, text=True)
+
+                if result.returncode == 0:
+                    first_line = result.stdout.strip().split("\n")[0]
+                    parts = first_line.split("/")
+                    if len(parts) >= 3:
+                        version_full = parts[0].replace("ClamAV", "").strip()
+                        version_date_str = parts[2].strip()
+
+                        date_version = datetime.strptime(
+                            version_date_str, "%a %b %d %H:%M:%S %Y")
+                        date_version.strftime("%Y-%m-%d")
+                        datetime.now().strftime("%Y-%m-%d")
+
+                        self.main_version["text"] = (f"{self.texts[self.lang]['version_label']} {version_full}\n"
+                                                      f"{self.texts[self.lang]['database_updated_on']} {date_version}")
+                    else:
+                        self.main_version["text"] = self.texts[self.lang]['unexpected_version_format']
+                else:
+                    self.main_version["text"] = self.texts[self.lang]['version_fetch_error']
+            except Exception as e:
+                self.main_version["text"] = f"{self.texts[self.lang]['generic_error']} {e}"
+            finally:
+                self.root.update_idletasks()
+
+        threading.Thread(target=run_version_fetch, daemon=True).start()
+        self.root.update_idletasks()
 
 
 if __name__ == "__main__":
     windll.shcore.SetProcessDpiAwareness(1)
+    request_uac_or_skip()
+    try:
+        CLAM_PATH = find_clamav()
+    except:
+        print()
+
     if darkdetect.isLight():
         mode = "light"
         root = ThemedTk(theme="arc")
