@@ -28,11 +28,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install uv
-        pip install pyinstaller
-        pip install pillow
+        uv venv
+        .venv\Scripts\activate
         uv sync
     - name: Running Pyinstaller
-      run: pyinstaller -F -n ClamAVTk -w --hidden-import darkdetect --add-data "util;util" --add-data "res;res" --icon="res/shield.png" "main.py"
+      run: uv run pyinstaller -F -n ClamAVTk -w --hidden-import darkdetect --add-data "util;util" --add-data "res;res" --icon="res/shield.png" "main.py"
     - name: Upload files
       uses: actions/upload-artifact@v4
       with:
