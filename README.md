@@ -42,7 +42,7 @@ cd clamav-tkinter
 
 2.  Instala las dependencias (si es necesario):
     
-`tkinter`: Si falta, puedes instalarlo con:
+`tkinter`: Si falta, puedes instalarlo en Ubuntu/Debian con:
 ```
 sudo apt install python3-tk
 ```
