@@ -47,8 +47,8 @@ cd clamav-tkinter
 sudo apt install python3-tk
 ```
 
-## Descargar Ejecutables (No recomendado, es mejor ejecutarlo por la terminal)
-[![Image](https://github.com/user-attachments/assets/6b392f0f-f903-4299-812c-b9a83b07aa32)](https://github.com/Acosta-gh/clamav-tkinter_PYTHON/releases/download/prerelease/ClamAVTkinter.appimage)
+## Descargar Ejecutables
+[![Image](https://github.com/user-attachments/assets/6b392f0f-f903-4299-812c-b9a83b07aa32)](https://github.com/Acosta-gh/clamav-tkinter_PYTHON/releases/download/0.0.10/ClamAVTkinter.appimage)
 
 ## Imagenes
 ![Image](https://github.com/user-attachments/assets/1057823b-5324-434e-9b37-f134be7aaaf2)
