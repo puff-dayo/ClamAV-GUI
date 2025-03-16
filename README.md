@@ -1,62 +1,47 @@
 
-# 🛡️ ClamAV Tkinter 
 
-ClamAV GUI es una interfaz gráfica de usuario (GUI) diseñada para facilitar el uso de ClamAV, un software antivirus de código abierto. Esta aplicación está inspirada en proyectos como ClamWin y ClamTk, y ofrece una experiencia más accesible y visual para los usuarios que desean realizar escaneos antivirus en sus sistemas de forma rápida y sencilla.
+# 🛡️ ClamAV Tk 
 
-## Características
+ClamAV Tk is a graphical user interface (GUI) designed to facilitate the use of [ClamAV](https://www.clamav.net/), an open source antivirus software. This repo is forked and built from [Acosta-gh/clamav-tkinter_PYTHON](https://github.com/Acosta-gh/clamav-tkinter_PYTHON). ClamAV Tk (this repo) is a WIP and not currently stable.
 
--   **Escanear archivos o directorios:** Selecciona un archivo o carpeta para escanear en busca de virus.
-    
--   **Historial de escaneos:** Guarda los resultados de cada escaneo y permite verlos posteriormente.
-    
--   **Actualización de la base de datos:** Actualiza la base de datos de virus usando `freshclam`.
-    
--   **Detección de versión de ClamAV:** Verifica la versión instalada y la fecha de la última actualización.
-    
+## Features
 
-## Requisitos
-
--   Python 3.7+
+- Scan files or directories
     
--   ClamAV instalado (`clamscan`, `freshclam`)
+- Scan history
     
--   Tkinter (incluido en la instalación estándar de Python)
+- Cloud database update
     
 
-En Ubuntu/Debian, puedes instalar ClamAV con:
+## Requirements
 
-```
-sudo apt update
-sudo apt install clamav clamav-daemon
-```
-
-## Instalación
-
-1.  Clona este repositorio:
+- Python 3.12+
     
-
-```
-git clone https://github.com/tu-usuario/clamav-tkinter.git
-cd clamav-tkinter
-```
-
-2.  Instala las dependencias (si es necesario):
+- ClamAV
     
-`tkinter`: Si falta, puedes instalarlo en Ubuntu/Debian con:
-```
-sudo apt install python3-tk
-```
+- Windows OS
 
-## Descargar Ejecutables
-[![Image](https://github.com/user-attachments/assets/6b392f0f-f903-4299-812c-b9a83b07aa32)](https://github.com/Acosta-gh/clamav-tkinter_PYTHON/releases/download/0.0.10/ClamAVTkinter.appimage)
+## Installation
 
-## Imagenes
-![Image](https://github.com/user-attachments/assets/1057823b-5324-434e-9b37-f134be7aaaf2)
+1. **Backend**: Download `.msi` installer from ClamAV [website](https://www.clamav.net/downloads), and install. No need for further configuration.
 
-![Image](https://github.com/user-attachments/assets/e541c2ad-cd09-4ae6-96be-8827b03b308c)
+2. **Frontend** (this repo): Download ClamAV Tk GUI `.exe` and run.
 
-![Image](https://github.com/user-attachments/assets/4fa714a2-f41f-43d0-9759-e19c748c8af2)
+3. Check tab `Upgrade` for autoconfiguration.
 
-![Image](https://github.com/user-attachments/assets/cb7f14ff-f673-4dbc-ba44-5571d5214ee7)
+## Build from source
+
+See `build.bat`.
+
+## Todo
+
+- [ ] apply theme to all pop up windows
+- [ ] scan bar popup -> scan frame inside
+- [ ] add a Quick Scan
+- [ ] re-enable multilanguage UI
+- [ ] extract UI strings to a single json provider util
+- [ ] break class ClamAVScanner into components
+
+## Icon
 
 Crédito del icono: [diamonjohn en Openclipart](https://openclipart.org/artist/diamonjohn)

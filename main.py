@@ -188,10 +188,10 @@ class ClamAVScanner:
         #     command=lambda: self.change_lang("es")
         # )
 
-        self.button_switch_language = ttk.Button(
-            self.config_frame, text=self.texts[self.lang]["button_label4"],
-            command=lambda: self.change_lang("es"))
-        self.button_update_database.pack(fill="x", padx=10, pady=10)
+        # self.button_switch_language = ttk.Button(
+        #     self.config_frame, text=self.texts[self.lang]["button_label4"],
+        #     command=lambda: self.change_lang("es"))
+        # self.button_switch_language.pack(fill="x", padx=10, pady=10)
 
         self.about_info = ttk.Label(
             self.config_frame, text=f"ClamAV Tk - v{VERSION}\nForked and built. 2025-", wraplength=280, anchor="w")
