@@ -3,6 +3,7 @@ import queue
 import subprocess
 import threading
 import tkinter as tk
+import webbrowser
 from ctypes import windll
 from datetime import datetime
 from tkinter import PhotoImage
@@ -16,11 +17,12 @@ from ttkthemes.themed_tk import ThemedTk
 from util.app_path_helper import EXE_PATH, RES_PATH, find_clamav
 from util.dark_theme import dark_title_bar
 from util.request_uac import request_uac_or_skip
+from util.sys_info import get_system_info
 
-VERSION = "0.0.10"
+VERSION = "0.0.11"
 
 
-class ClamAVScanner():
+class ClamAVScanner:
     def __init__(self, _root):
         self.root = _root
         self.lang = "en"
@@ -42,7 +44,7 @@ class ClamAVScanner():
     def load_texts(self):
         return {
             "es": {
-                "app_title": "ClamAV Tkinter - Escáner de archivos y directorios",
+                "app_title": "ClamAV Tk",
                 "menu_bar1": "Idioma",
                 "menu_bar2": "Ayuda",
                 "language_menu1": "English",
@@ -97,7 +99,7 @@ class ClamAVScanner():
                          "realizar escaneos antivirus en sus sistemas de forma rápida y sencilla."
             },
             "en": {
-                "app_title": "ClamAV Tkinter - File and Directory Scanner",
+                "app_title": "ClamAV Tk",
                 "menu_bar1": "Language",
                 "menu_bar2": "Help",
                 "language_menu1": "English",
@@ -154,10 +156,12 @@ class ClamAVScanner():
         self.root.title(self.texts[self.lang]['app_title'])
         self.root.resizable(False, False)
         self.center_window()
-        # self.create_menu()
         self.create_tabs()
+
         self.create_buttons()
+        self.create_menu()
         self.create_checkboxes()
+
         self.get_version()
         self.get_main_version()
 
@@ -174,36 +178,33 @@ class ClamAVScanner():
         window.geometry(f"+{x - marginx}+{y - marginy}")
 
     def create_menu(self):
-        if hasattr(self, "menu_bar"):
-            self.menu_bar.destroy()
+        # self.language_menu.add_command(
+        #     label=self.texts[self.lang]["language_menu1"],
+        #     command=lambda: self.change_lang("en")
+        # )
+        # self.language_menu.add_command(
+        #     label=self.texts[self.lang]["language_menu2"],
+        #     command=lambda: self.change_lang("es")
+        # )
 
-        self.menu_bar = tk.Menu(self.root)
-        self.root.config(menu=self.menu_bar)
+        self.button_switch_language = ttk.Button(
+            self.config_frame, text=self.texts[self.lang]["button_label4"],
+            command=lambda: self.change_lang("es"))
+        self.button_update_database.pack(fill="x", padx=10, pady=10)
 
-        self.language_menu = tk.Menu(self.menu_bar, tearoff=0)
-        self.language_menu.add_command(
-            label=self.texts[self.lang]["language_menu1"],
-            command=lambda: self.change_lang("en")
-        )
-        self.language_menu.add_command(
-            label=self.texts[self.lang]["language_menu2"],
-            command=lambda: self.change_lang("es")
-        )
+        self.about_info = ttk.Label(
+            self.config_frame, text=f"ClamAV Tk - v{VERSION}\nForked and built. 2025-", wraplength=280, anchor="w")
+        self.about_info.pack(padx=10, pady=10, fill="x")
 
-        self.help_menu = tk.Menu(self.menu_bar, tearoff=0)
-        self.help_menu.add_command(
-            label=self.texts[self.lang]["help_menu1"],
-            command=lambda: self.view_about()
-        )
+        self.sys_info = ttk.Label(
+            self.config_frame, text=get_system_info(), wraplength=280, anchor="w")
+        self.sys_info.pack(padx=10, pady=10, fill="x")
 
-        self.menu_bar.add_cascade(
-            label=self.texts[self.lang]["menu_bar1"],
-            menu=self.language_menu
-        )
-        self.menu_bar.add_cascade(
-            label=self.texts[self.lang]["menu_bar2"],
-            menu=self.help_menu
-        )
+        self.herf = ttk.Label(
+            self.config_frame, text=f"Github: puff-dayo/ClamAV-GUI", wraplength=280,
+            cursor="hand2")
+        self.herf.pack(padx=10, pady=10)
+        self.herf.bind("<ButtonRelease-1>", lambda e: webbrowser.open_new("https://github.com/puff-dayo/ClamAV-GUI"))
 
     def create_tabs(self):
         self.tabs_notebook = ttk.Notebook(self.root)
@@ -465,20 +466,6 @@ class ClamAVScanner():
             history_window, text=self.texts[self.lang]['open_result'], command=open_selected_file)
         open_button.pack(pady=10)
 
-    # def update_database(self):
-    #     result = subprocess.run(["freshclam"],
-    #                             capture_output=True, text=True)
-    #
-    #     if "Failed to lock the log file" in result.stderr:
-    #         self.label_version["text"] = self.texts[self.lang]['database_locked']
-    #     elif result.returncode != 0:
-    #         self.label_version["text"] = f"{self.texts[self.lang]['database_update_error']}\n{result.stderr}"
-    #     else:
-    #         self.label_version["text"] = self.texts[self.lang]['database_updated']
-    #
-    #     if "Problem with internal logger" in result.stderr or result.returncode == 0:
-    #         self.label_version["text"] = self.texts[self.lang]['database_up_to_date']
-
     def update_database(self):
         self.button_update_database['state'] = tk.DISABLED
         thread = threading.Thread(target=self._update_database)
@@ -557,7 +544,7 @@ class ClamAVScanner():
                         datetime.now().strftime("%Y-%m-%d")
 
                         self.main_version["text"] = (f"{self.texts[self.lang]['version_label']} {version_full}\n"
-                                                      f"{self.texts[self.lang]['database_updated_on']} {date_version}")
+                                                     f"{self.texts[self.lang]['database_updated_on']} {date_version}")
                     else:
                         self.main_version["text"] = self.texts[self.lang]['unexpected_version_format']
                 else:
@@ -590,7 +577,7 @@ if __name__ == "__main__":
         style = ttkthemes.ThemedStyle(root)
         style.set_theme("equilux")
 
-    root.geometry("356x522")
+    root.geometry("356x422")
     app = ClamAVScanner(_root=root)
     if mode == "dark":
         dark_title_bar(root)
