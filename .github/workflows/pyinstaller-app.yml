@@ -32,7 +32,7 @@ jobs:
     - name: Running Pyinstaller
       run: python -m pyinstaller -F -n ClamAVTk -w --add-data "util;util" --add-data "res;res" --icon="res/shield.png" "main.py"
     - name: Upload files
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         path: dist/*
 
