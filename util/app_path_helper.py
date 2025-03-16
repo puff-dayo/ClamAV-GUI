@@ -39,7 +39,7 @@ def find_clamav():
     for drive in string.ascii_uppercase[2:]:
         path = f"{drive}:\\Program Files\\{dir_name}"
         if os.path.exists(path):
-            print(f"{dir_name} found at {path}")
+            # print(f"{dir_name} found at {path}")
             os.environ["PATH"] = os.environ["PATH"] + os.pathsep + path
             init_clamav(path)
             return path

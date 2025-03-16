@@ -16,6 +16,7 @@ from ttkthemes.themed_tk import ThemedTk
 
 from util.app_path_helper import EXE_PATH, RES_PATH, find_clamav
 from util.dark_theme import dark_title_bar
+from util.path_escape import PathUtil
 from util.request_uac import request_uac_or_skip
 from util.sys_info import get_system_info
 
@@ -363,6 +364,8 @@ class ClamAVScanner:
             title=title, initialdir=initialdir)
 
         if path:
+            path = PathUtil.handle_path(path)
+
             newWindow = tk.Toplevel(self.root)
             newWindow.title(self.texts[self.lang]['scan'])
             self.center_window(newWindow, 200, 150)
