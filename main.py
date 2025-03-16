@@ -105,10 +105,10 @@ class ClamAVScanner:
                 "language_menu1": "English",
                 "language_menu2": "Español",
                 "help_menu1": "About",
-                "tab1": "Analysis",
+                "tab1": "Scan",
                 "tab2": "History",
-                "tab3": "Updates",
-                "tab4": "Configuration",
+                "tab3": "Update",
+                "tab4": "Config",
                 "button_label1": "Scan a file",
                 "button_label2": "Scan a directory",
                 "button_label3": "View scan history",
@@ -582,4 +582,6 @@ if __name__ == "__main__":
     if mode == "dark":
         dark_title_bar(root)
 
+    root.lift()
+    root.attributes("-topmost", True)
     root.mainloop()

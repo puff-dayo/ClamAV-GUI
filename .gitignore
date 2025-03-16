@@ -4,3 +4,6 @@
 history
 bin
 *.pyc
+build
+dist
+ClamAVTk.spec
