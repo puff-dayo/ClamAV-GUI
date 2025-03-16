@@ -460,7 +460,7 @@ class ClamAVScanner():
         open_button.pack(pady=10)
 
     def update_database(self):
-        result = subprocess.run(["pkexec", "freshclam"],
+        result = subprocess.run(["freshclam"],
                                 capture_output=True, text=True)
 
         if "Failed to lock the log file" in result.stderr:
@@ -476,7 +476,7 @@ class ClamAVScanner():
     def get_version(self):
         try:
             result = subprocess.run(
-                ["clamscan", "--version"], capture_output=True, text=True)
+                ["freshclam", "--version"], capture_output=True, text=True)
 
             if result.returncode == 0:
                 first_line = result.stdout.strip().split("\n")[0]
