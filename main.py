@@ -1,29 +1,30 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
-from tkinter.filedialog import askopenfilename, askdirectory
-import subprocess
 import os
-import threading
 import queue
+import subprocess
+import threading
+import tkinter as tk
+from ctypes import windll
 from datetime import datetime
 from tkinter import PhotoImage
-from pathlib import Path
-from ctypes import windll
+from tkinter import ttk, messagebox
+from tkinter.filedialog import askopenfilename, askdirectory
 
+from util.app_path_helper import EXE_PATH, RES_PATH
 
 VERSION = "0.0.10"
 
+
 class ClamAVScanner:
-    def __init__(self, root):
-        self.root = root
+    def __init__(self, _root):
+        self.root = _root
         self.lang = "en"
         self.texts = self.load_texts()
         self.result_queue = queue.Queue()
-        self.history_dir = Path.home() / "ClamAV_History"
-        self.history_dir.mkdir(exist_ok=True)
 
-        self.script_dir = os.path.dirname(os.path.realpath(__file__))
-        self.icon_path = os.path.join(self.script_dir, "shield.png")
+        # self.script_dir = os.path.dirname(os.path.realpath(__file__))
+        self.history_dir = os.path.join(EXE_PATH, "history")
+        os.makedirs(self.history_dir, exist_ok=True)
+        self.icon_path = os.path.join(RES_PATH, "shield.png")
 
         try:
             self.icon_image = PhotoImage(file=self.icon_path)
@@ -76,7 +77,7 @@ class ClamAVScanner:
                 "loading_message": "Cargando, por favor espere...",
                 "error_message": "Hubo un error. Por favor, intente nuevamente.",
                 "about_message": "ClamAV Tkinter es una interfaz gráfica para el escaneo de archivos y directorios usando el motor ClamAV.",
-                "scan":"Escaneando",
+                "scan": "Escaneando",
                 "scan_complete": "Escaneo Completado",
                 "stdout": "Salida estándar",
                 "stderr": "Salida de error",
@@ -84,11 +85,11 @@ class ClamAVScanner:
                 "recursive_search": "Buscar amenazas de manera recursiva",
                 "delete_threats": "Eliminar amenazas encontradas",
 
-                "version":"Versión",
-                "about":"ClamAV GUI es una interfaz gráfica de usuario (GUI) diseñada para facilitar el uso "
-                "de ClamAV, un software antivirus de código abierto. Esta aplicación está inspirada en proyectos "
-                "como ClamWin y ClamTk, y ofrece una experiencia más accesible y visual para los usuarios que desean "
-                "realizar escaneos antivirus en sus sistemas de forma rápida y sencilla."
+                "version": "Versión",
+                "about": "ClamAV GUI es una interfaz gráfica de usuario (GUI) diseñada para facilitar el uso "
+                         "de ClamAV, un software antivirus de código abierto. Esta aplicación está inspirada en proyectos "
+                         "como ClamWin y ClamTk, y ofrece una experiencia más accesible y visual para los usuarios que desean "
+                         "realizar escaneos antivirus en sus sistemas de forma rápida y sencilla."
             },
             "en": {
                 "app_title": "ClamAV Tkinter - File and Directory Scanner",
@@ -131,7 +132,7 @@ class ClamAVScanner:
                 "loading_message": "Loading, please wait...",
                 "error_message": "An error occurred. Please try again.",
                 "about_message": "ClamAV Tkinter is a graphical interface for scanning files and directories using the ClamAV engine.",
-                "scan":"Scanning",
+                "scan": "Scanning",
                 "scan_complete": "Scan Complete",
                 "stdout": "Standard output",
                 "stderr": "Error output",
@@ -139,8 +140,8 @@ class ClamAVScanner:
                 "recursive_search": "Search for threats recursively",
                 "delete_threats": "Delete found threats",
 
-                "version":"Version",
-                "about":"ClamAV GUI is a graphical user interface designed to simplify the use of ClamAV, an open-source antivirus software. This application is inspired by projects such as ClamWin and ClamTk, and provides a more accessible and visual experience for users who wish to perform antivirus scans on their systems quickly and easily."
+                "version": "Version",
+                "about": "ClamAV GUI is a graphical user interface designed to simplify the use of ClamAV, an open-source antivirus software. This application is inspired by projects such as ClamWin and ClamTk, and provides a more accessible and visual experience for users who wish to perform antivirus scans on their systems quickly and easily."
             }
         }
 
@@ -164,7 +165,7 @@ class ClamAVScanner:
         window_height = window.winfo_height()
         x = (screen_width - window_width) // 2
         y = (screen_height - window_height) // 2
-        window.geometry(f"+{x-marginx}+{y-marginy}")
+        window.geometry(f"+{x - marginx}+{y - marginy}")
 
     def create_menu(self):
         if hasattr(self, "menu_bar"):
@@ -332,11 +333,11 @@ class ClamAVScanner:
             text_square.config(state="disabled")
         except tk.TclError as e:
             print(f"Error configuring text widget: {e}")
-        
+
     def save_scan_result(self, result):
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"{timestamp}.txt"
-        filepath = self.history_dir / filename
+        filepath = os.path.join(self.history_dir, filename)
 
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(f"{self.texts[self.lang]['stdout']}:\n")
@@ -366,7 +367,7 @@ class ClamAVScanner:
             threading.Thread(target=self.run_scan,
                              args=(path,), daemon=True).start()
             self.root.after(100, self.check_scan_status,
-                            progressbar, newWindow,label_loading)
+                            progressbar, newWindow, label_loading)
 
     def scan_a_file(self):
         self.start_scan(
@@ -391,7 +392,7 @@ class ClamAVScanner:
         about_window = tk.Toplevel(self.root)
         about_window.title("About")
         self.center_window(about_window)
-        
+
         about_image_original = tk.PhotoImage(file=self.icon_path)
         about_image = about_image_original.subsample(3, 3)
 
