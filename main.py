@@ -8,12 +8,14 @@ import queue
 from datetime import datetime
 from tkinter import PhotoImage
 from pathlib import Path
+from ctypes import windll
+
 
 VERSION = "0.0.10"
 
 class ClamAVScanner:
     def __init__(self, root):
-        self.root = root 
+        self.root = root
         self.lang = "en"
         self.texts = self.load_texts()
         self.result_queue = queue.Queue()
@@ -500,6 +502,8 @@ class ClamAVScanner:
 
 
 if __name__ == "__main__":
+    windll.shcore.SetProcessDpiAwareness(1)
+
     root = tk.Tk()
     app = ClamAVScanner(root)
     root.mainloop()
