@@ -9,7 +9,7 @@ from datetime import datetime
 from tkinter import PhotoImage
 from pathlib import Path
 
-VERSION = "0.0.9"
+VERSION = "0.0.10"
 
 class ClamAVScanner:
     def __init__(self, root):
