@@ -12,6 +12,7 @@ from tkinter import messagebox
 from tkinter.filedialog import askopenfilename, askdirectory
 
 import darkdetect
+import psutil
 import ttkbootstrap as ttk
 
 from util.animation import BreathingCircle
@@ -213,14 +214,18 @@ class ClamAVScanner:
 
         self.checkbox_var_recursive = tk.IntVar(value=1)
         self.checkbox_var_kill = tk.IntVar(value=0)
+        self.checkbox_var_processfork = tk.IntVar(value=1)
 
         self.checkbox_recursive = ttk.Checkbutton(
             self.config_frame, text=self.texts[self.lang]['recursive_search'], variable=self.checkbox_var_recursive)
         self.checkbox_kill = ttk.Checkbutton(
             self.config_frame, text=self.texts[self.lang]['delete_threats'], variable=self.checkbox_var_kill)
+        self.checkbox_processfork = ttk.Checkbutton(
+            self.config_frame, text="Use all system resources", variable=self.checkbox_var_processfork)
 
         self.checkbox_recursive.pack(pady=5, padx=5, anchor="w")
         self.checkbox_kill.pack(pady=5, padx=5, anchor="w")
+        self.checkbox_processfork.pack(pady=5, padx=5, anchor="w")
 
     def create_tabs(self):
         self.tabs_notebook = ttk.Notebook(self.root)
@@ -332,8 +337,6 @@ class ClamAVScanner:
         self.checkbox_kill.config(
             text=self.texts[self.lang]["checkbox_label2"])
 
-        # self.create_menu()
-
     def run_scan(self, path):
         args = ['clamscan']
 
@@ -342,6 +345,11 @@ class ClamAVScanner:
 
         if self.checkbox_var_kill.get() == 1:
             args.append('--remove')
+
+        if self.checkbox_var_processfork.get() == 1:
+            max_scan_size = int((psutil.virtual_memory().free / (1024 * 1024 * 1024)) / 0.6)
+            max_scan_size = max(max_scan_size, psutil.cpu_count(logical=True) - 1)
+            args.append(f'--max-scansize={max_scan_size}')
 
         args.append(path)
 
