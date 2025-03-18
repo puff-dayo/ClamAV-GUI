@@ -245,6 +245,9 @@ class ClamAVScanner:
         self.tabs_notebook.add(
             self.config_frame, text="🛠 " + self.texts[self.lang]["tab4"])
 
+        style = ttk.Style()
+        style.configure("TNotebook.Tab", font=("Segoe UI Emoji", 10))
+
     def create_scan_frame(self):
         left_frame = ttk.Frame(self.scan_frame)
         right_frame = ttk.Frame(self.scan_frame)
@@ -297,9 +300,52 @@ class ClamAVScanner:
         self.main_version.pack(padx=10, pady=10, fill="x")
 
     def create_history_frame(self):
-        self.button_view_history = ttk.Button(
-            self.history_frame, text=self.texts[self.lang]["button_label3"], command=self.view_history)
-        self.button_view_history.pack(fill="x", pady=10, padx=10)
+        left_frame = ttk.Frame(self.history_frame)
+        right_frame = ttk.Frame(self.history_frame)
+        left_frame.pack(side="left", fill="y")
+        right_frame.pack(side="right", fill="both", expand=True)
+
+        # LEFT FRAME
+
+        history_files = os.listdir(self.history_dir)
+        if not history_files:
+            pass
+        listbox = tk.Listbox(left_frame)
+        listbox.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        for file in sorted(history_files, reverse=True):
+            listbox.insert(tk.END, file)
+
+        def on_select(event):
+            """Handle Listbox item selection event"""
+            index = event.widget.curselection()
+            if index:
+                selected_value = event.widget.get(index)
+                filepath = os.path.join(self.history_dir, selected_value)
+
+                self.history_display.config(text=f"Scan history: {selected_value[:-4]}")
+
+                with open(filepath, "r", encoding="utf-8") as f:
+                    content = f.read()
+                    self.label_history.config(state="normal")
+                    self.label_history.delete('1.0', tk.END)  # clear
+                    self.label_history.insert('1.0', content)  # insert
+                    self.label_history.config(state="disabled")
+
+        listbox.bind("<<ListboxSelect>>", on_select)
+
+        # RIGHT FRAME
+
+        self.history_display = ttk.Labelframe(right_frame, text="Scan history")
+        self.history_display.pack(fill="both", expand=1, padx=10, pady=10)
+
+        self.label_history = tk.Text(self.history_display, wrap="word")
+        self.label_history.pack(side="left", fill="both", expand=1, padx=10, pady=10)
+
+        scrollbar = tk.Scrollbar(self.label_history, width=20)
+        scrollbar.pack(side="right", fill="y")
+
+        self.label_history.config(yscrollcommand=scrollbar.set)
+        scrollbar.config(command=self.label_history.yview)
 
     def create_update_frame(self):
         self.button_update_database = ttk.Button(
