@@ -1,5 +1,6 @@
 import colorsys
 import math
+import time
 from tkinter import *
 
 
@@ -22,6 +23,9 @@ class BreathingCircle:
         self.circle_id = None
         self.symbol_ids = []
 
+        self.last_frame_time = 0
+        self.animation_step = 0.025
+
     def create_canvas(self, master, bg, width=500, height=500):
         self.canvas = Canvas(master, width=width, height=height,
                              bg=bg, highlightthickness=0)
@@ -41,6 +45,7 @@ class BreathingCircle:
         ]
 
     def _calculate_scale(self):
+        self.canvas.update_idletasks()
         current_width = self.canvas.winfo_width()
         current_height = self.canvas.winfo_height()
         self.scale_factor = min(current_width, current_height) / self.base_size
@@ -145,12 +150,26 @@ class BreathingCircle:
         self.update_symbols()
 
     def animate(self):
-        if self.animating:
-            self.phase += 0.025
-            self.pulse = self.radius * 0.1 * math.sin(self.phase)
-            self.hue = (self.hue + 0.01) % 1.0
-            self.draw_circle()
-            self.canvas.after_id = self.canvas.after(16, self.animate)
+        if not self.animating:
+            self.last_frame_time = 0
+            return
+
+        now = time.time() * 1000
+        if self.last_frame_time == 0:
+            delta_time = 16
+        else:
+            delta_time = now - self.last_frame_time
+            delta_time = max(delta_time, 1)
+
+        self.last_frame_time = now
+
+        self.phase += self.animation_step * (delta_time / 16)
+        self.pulse = self.radius * 0.1 * math.sin(self.phase)
+
+        self.update_circle()
+        self.update_symbols()
+
+        self.canvas.after(10, self.animate)
 
     def toggle_symbol(self):
         self.symbol_index = (self.symbol_index + 1) % 4

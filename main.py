@@ -279,11 +279,12 @@ class ClamAVScanner:
         self.canvas = self.breathing_circle.create_canvas(right_frame, bg)
         self.canvas.pack(fill="both", expand=True)
 
-        self.breathing_circle.set_size(300, 200)
         self.breathing_circle.set_line_width(10)
         self.breathing_circle.toggle_animation()
         self.breathing_circle.set_color(Palette.COLOR_GREEN)
         self.breathing_circle.set_symbol(2)
+        self.breathing_circle.draw_circle()
+        self.breathing_circle.set_size(300, 200)
 
         self.main_version = ttk.Label(
             right_frame, text="", anchor="e")
