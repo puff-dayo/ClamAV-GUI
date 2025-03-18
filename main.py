@@ -231,13 +231,13 @@ class ClamAVScanner:
         self.config_frame = ttk.Frame(self.tabs_notebook)
 
         self.tabs_notebook.add(
-            self.scan_frame, text=self.texts[self.lang]["tab1"])
+            self.scan_frame, text="🔍"+self.texts[self.lang]["tab1"])
         self.tabs_notebook.add(
-            self.history_frame, text=self.texts[self.lang]["tab2"])
+            self.history_frame, text="📋"+self.texts[self.lang]["tab2"])
         self.tabs_notebook.add(
-            self.update_frame, text=self.texts[self.lang]["tab3"])
+            self.update_frame, text="☁️"+self.texts[self.lang]["tab3"])
         self.tabs_notebook.add(
-            self.config_frame, text=self.texts[self.lang]["tab4"])
+            self.config_frame, text="🛠"+self.texts[self.lang]["tab4"])
 
     def create_scan_frame(self):
         left_frame = ttk.Frame(self.scan_frame)
@@ -248,23 +248,23 @@ class ClamAVScanner:
         # LEFT FRAME
 
         self.button_scan_quick = ttk.Button(
-            left_frame, text="Quick scan", command=self.scan_a_file)
+            left_frame, text="⚡"+"Quick scan", command=self.scan_a_file)
         self.button_scan_quick.pack(fill="x", pady=10, padx=10)
 
         self.button_scan_ram = ttk.Button(
-            left_frame, text="Memory", command=self.scan_a_file)
+            left_frame, text="💾"+"Memory", command=self.scan_a_file)
         self.button_scan_ram.pack(fill="x", pady=10, padx=10)
 
         self.button_scan_all = ttk.Button(
-            left_frame, text="All files&memory", command=self.scan_a_file)
+            left_frame, text="💻"+"All files", command=self.scan_a_file)
         self.button_scan_all.pack(fill="x", pady=10, padx=10)
 
         self.button_scan_a_file = ttk.Button(
-            left_frame, text="One file", command=self.scan_a_file)
+            left_frame, text="📄"+"One file", command=self.scan_a_file)
         self.button_scan_a_file.pack(fill="x", pady=10, padx=10)
 
         self.button_scan_a_directory = ttk.Button(
-            left_frame, text="Directory", command=self.scan_a_directory)
+            left_frame, text="📁"+"Directory", command=self.scan_a_directory)
         self.button_scan_a_directory.pack(fill="x", pady=5, padx=10)
 
         # RIGHT FRAME
