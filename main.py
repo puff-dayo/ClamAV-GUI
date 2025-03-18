@@ -1,3 +1,4 @@
+import locale
 import os
 import queue
 import subprocess
@@ -7,12 +8,11 @@ import webbrowser
 from ctypes import windll
 from datetime import datetime
 from tkinter import PhotoImage
-from tkinter import ttk, messagebox
+from tkinter import messagebox
 from tkinter.filedialog import askopenfilename, askdirectory
 
 import darkdetect
-import ttkthemes
-from ttkthemes.themed_tk import ThemedTk
+import ttkbootstrap as ttk
 
 from util.animation import BreathingCircle
 from util.app_path_helper import EXE_PATH, RES_PATH, find_clamav
@@ -34,6 +34,9 @@ class ClamAVScanner:
 
         self.history_dir = os.path.join(EXE_PATH, "history")
         os.makedirs(self.history_dir, exist_ok=True)
+
+        self.setup_ui()
+
         self.icon_path = os.path.join(RES_PATH, "shield.png")
 
         try:
@@ -41,8 +44,6 @@ class ClamAVScanner:
             self.root.iconphoto(True, self.icon_image)
         except Exception as e:
             print(f"Error al cargar el ícono: {e}")
-
-        self.setup_ui()
 
     def load_texts(self):
         return {
@@ -231,13 +232,13 @@ class ClamAVScanner:
         self.config_frame = ttk.Frame(self.tabs_notebook)
 
         self.tabs_notebook.add(
-            self.scan_frame, text="🔍"+self.texts[self.lang]["tab1"])
+            self.scan_frame, text="🔍 " + self.texts[self.lang]["tab1"])
         self.tabs_notebook.add(
-            self.history_frame, text="📋"+self.texts[self.lang]["tab2"])
+            self.history_frame, text="📋 " + self.texts[self.lang]["tab2"])
         self.tabs_notebook.add(
-            self.update_frame, text="☁️"+self.texts[self.lang]["tab3"])
+            self.update_frame, text="☁️ " + self.texts[self.lang]["tab3"])
         self.tabs_notebook.add(
-            self.config_frame, text="🛠"+self.texts[self.lang]["tab4"])
+            self.config_frame, text="🛠 " + self.texts[self.lang]["tab4"])
 
     def create_scan_frame(self):
         left_frame = ttk.Frame(self.scan_frame)
@@ -248,23 +249,23 @@ class ClamAVScanner:
         # LEFT FRAME
 
         self.button_scan_quick = ttk.Button(
-            left_frame, text="⚡"+"Quick scan", command=self.scan_a_file)
+            left_frame, text="⚡" + "Quick scan", command=self.scan_a_file)
         self.button_scan_quick.pack(fill="x", pady=10, padx=10)
 
         self.button_scan_ram = ttk.Button(
-            left_frame, text="💾"+"Memory", command=self.scan_a_file)
+            left_frame, text="💾 " + "Memory", command=self.scan_a_file)
         self.button_scan_ram.pack(fill="x", pady=10, padx=10)
 
         self.button_scan_all = ttk.Button(
-            left_frame, text="💻"+"All files", command=self.scan_a_file)
+            left_frame, text="💻 " + "All files", command=self.scan_a_file)
         self.button_scan_all.pack(fill="x", pady=10, padx=10)
 
         self.button_scan_a_file = ttk.Button(
-            left_frame, text="📄"+"One file", command=self.scan_a_file)
+            left_frame, text="📄 " + "One file", command=self.scan_a_file)
         self.button_scan_a_file.pack(fill="x", pady=10, padx=10)
 
         self.button_scan_a_directory = ttk.Button(
-            left_frame, text="📁"+"Directory", command=self.scan_a_directory)
+            left_frame, text="📁 " + "Directory", command=self.scan_a_directory)
         self.button_scan_a_directory.pack(fill="x", pady=5, padx=10)
 
         # RIGHT FRAME
@@ -274,7 +275,7 @@ class ClamAVScanner:
         )
         self.scan_info.pack(padx=10, pady=10, fill="x")
 
-        bg = Palette.BG_DARK if THEME == "equilux" else Palette.BG_LIGHT
+        bg = Palette.BG_DARK if MODE == "light" else Palette.BG_LIGHT
         self.breathing_circle = BreathingCircle()
         self.canvas = self.breathing_circle.create_canvas(right_frame, bg)
         self.canvas.pack(fill="both", expand=True)
@@ -604,9 +605,13 @@ class ClamAVScanner:
         self.root.update_idletasks()
 
 
-THEME = ""
+MODE = ""
 
 if __name__ == "__main__":
+    # fix ttkbootstrap conflicts with datetime parser
+    # don't delete this line
+    locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
+
     windll.shcore.SetProcessDpiAwareness(1)
 
     DEV_MODE = True
@@ -617,24 +622,19 @@ if __name__ == "__main__":
     except:
         pass
 
-    DEV_MODE_LIGHT = False
+    DEV_MODE_LIGHT = True
 
     if darkdetect.isLight() or DEV_MODE_LIGHT:
-        mode = "light"
-        THEME = "arc"
-        root = ThemedTk(theme=THEME)
-        style = ttkthemes.ThemedStyle(root)
-        style.set_theme(THEME)
+        MODE = "light"
+        root = ttk.Window(themename="minty")
     else:
-        mode = "dark"
-        THEME = "equilux"
-        root = ThemedTk(theme=THEME)
-        style = ttkthemes.ThemedStyle(root)
-        style.set_theme(THEME)
+        MODE = "dark"
+        root = ttk.Window(themename="darkly")
 
     root.geometry("768x512")
     app = ClamAVScanner(_root=root)
-    if mode == "dark":
+
+    if MODE == "dark":
         dark_title_bar(root)
 
     root.lift()
