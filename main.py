@@ -118,8 +118,8 @@ class ClamAVScanner:
                 "button_label4": "Update database",
                 "checkbox_label1": "Search for threats recursively",
                 "checkbox_label2": "Remove found threats",
-                "version_label": "ClamAV Version: ",
-                "database_label": "Database Version: ",
+                "version_label": "ClamAV version: ",
+                "database_label": "Database update: ",
                 "exit_label": "Exit",
                 "select_file": "Select a file",
                 "all_files": "All files",
@@ -133,7 +133,7 @@ class ClamAVScanner:
                 "database_update_error": "Error updating the database:",
                 "database_updated": "The database was updated successfully.",
                 "database_up_to_date": "The database is already up to date and managed automatically in the background. Manual updates are not necessary.",
-                "database_updated_on": "Database:",
+                "database_updated_on": "Database version:",
                 "current_date": "Current date",
                 "version_date": "Version date",
                 "unexpected_version_format": "Database not exist or unexpected version format.",
@@ -247,10 +247,6 @@ class ClamAVScanner:
 
         # LEFT FRAME
 
-        self.main_version = ttk.Label(
-            left_frame, text="", wraplength=280, anchor="w")
-        self.main_version.pack(padx=10, pady=10, fill="x")
-
         self.button_scan_quick = ttk.Button(
             left_frame, text="Quick scan", command=self.scan_a_file)
         self.button_scan_quick.pack(fill="x", pady=10, padx=10)
@@ -272,22 +268,26 @@ class ClamAVScanner:
         self.button_scan_a_directory.pack(fill="x", pady=5, padx=10)
 
         # RIGHT FRAME
-
-        bg = Palette.BG_DARK if THEME == "equilux" else Palette.BG_LIGHT
-        self.breathing_circle = BreathingCircle()
-
         self.scan_info = ttk.Label(
             right_frame, text="No scans is running currently.\nLive mode is off.",
             wraplength=280, anchor="w"
         )
         self.scan_info.pack(padx=10, pady=10, fill="x")
 
+        bg = Palette.BG_DARK if THEME == "equilux" else Palette.BG_LIGHT
+        self.breathing_circle = BreathingCircle()
         self.canvas = self.breathing_circle.create_canvas(right_frame, bg)
         self.canvas.pack(fill="both", expand=True)
 
+        self.breathing_circle.set_size(300, 200)
+        self.breathing_circle.set_line_width(10)
         self.breathing_circle.toggle_animation()
-        self.breathing_circle.set_line_width(15)
+        self.breathing_circle.set_color(Palette.COLOR_GREEN)
         self.breathing_circle.set_symbol(2)
+
+        self.main_version = ttk.Label(
+            right_frame, text="", anchor="e")
+        self.main_version.pack(padx=10, pady=10, fill="x")
 
     def create_history_frame(self):
         self.button_view_history = ttk.Button(
@@ -587,8 +587,9 @@ class ClamAVScanner:
                         date_version.strftime("%Y-%m-%d")
                         datetime.now().strftime("%Y-%m-%d")
 
-                        self.main_version["text"] = (f"{self.texts[self.lang]['version_label']} {version_full}\n"
-                                                     f"{self.texts[self.lang]['database_updated_on']} {date_version}")
+                        self.main_version["text"] = (
+                            # f"{self.texts[self.lang]['version_label']} {version_full}\n"
+                            f"{self.texts[self.lang]['database_updated_on']} {date_version}")
                     else:
                         self.main_version["text"] = self.texts[self.lang]['unexpected_version_format']
                 else:
@@ -615,7 +616,7 @@ if __name__ == "__main__":
     except:
         pass
 
-    DEV_MODE_LIGHT = True
+    DEV_MODE_LIGHT = False
 
     if darkdetect.isLight() or DEV_MODE_LIGHT:
         mode = "light"
