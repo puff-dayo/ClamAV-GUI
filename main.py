@@ -14,8 +14,10 @@ import darkdetect
 import ttkthemes
 from ttkthemes.themed_tk import ThemedTk
 
+from util.animation import BreathingCircle
 from util.app_path_helper import EXE_PATH, RES_PATH, find_clamav
 from util.dark_theme import dark_title_bar
+from util.palette import Palette
 from util.path_escape import PathUtil
 from util.request_uac import request_uac_or_skip
 from util.sys_info import get_system_info
@@ -131,7 +133,7 @@ class ClamAVScanner:
                 "database_update_error": "Error updating the database:",
                 "database_updated": "The database was updated successfully.",
                 "database_up_to_date": "The database is already up to date and managed automatically in the background. Manual updates are not necessary.",
-                "database_updated_on": "Database updated on:",
+                "database_updated_on": "Database:",
                 "current_date": "Current date",
                 "version_date": "Version date",
                 "unexpected_version_format": "Database not exist or unexpected version format.",
@@ -159,9 +161,10 @@ class ClamAVScanner:
         self.center_window()
         self.create_tabs()
 
-        self.create_buttons()
-        self.create_menu()
-        self.create_checkboxes()
+        self.create_scan_frame()
+        self.create_history_frame()
+        self.create_update_frame()
+        self.create_config_frame()
 
         self.get_version()
         self.get_main_version()
@@ -178,7 +181,7 @@ class ClamAVScanner:
         y = (screen_height - window_height) // 2
         window.geometry(f"+{x - marginx}+{y - marginy}")
 
-    def create_menu(self):
+    def create_config_frame(self):
         # self.language_menu.add_command(
         #     label=self.texts[self.lang]["language_menu1"],
         #     command=lambda: self.change_lang("en")
@@ -207,6 +210,17 @@ class ClamAVScanner:
         self.herf.pack(padx=10, pady=10)
         self.herf.bind("<ButtonRelease-1>", lambda e: webbrowser.open_new("https://github.com/puff-dayo/ClamAV-GUI"))
 
+        self.checkbox_var_recursive = tk.IntVar(value=1)
+        self.checkbox_var_kill = tk.IntVar(value=0)
+
+        self.checkbox_recursive = ttk.Checkbutton(
+            self.config_frame, text=self.texts[self.lang]['recursive_search'], variable=self.checkbox_var_recursive)
+        self.checkbox_kill = ttk.Checkbutton(
+            self.config_frame, text=self.texts[self.lang]['delete_threats'], variable=self.checkbox_var_kill)
+
+        self.checkbox_recursive.pack(pady=5, padx=5, anchor="w")
+        self.checkbox_kill.pack(pady=5, padx=5, anchor="w")
+
     def create_tabs(self):
         self.tabs_notebook = ttk.Notebook(self.root)
         self.tabs_notebook.pack(fill="both", expand=True, pady=0, padx=0)
@@ -225,19 +239,62 @@ class ClamAVScanner:
         self.tabs_notebook.add(
             self.config_frame, text=self.texts[self.lang]["tab4"])
 
-    def create_buttons(self):
+    def create_scan_frame(self):
+        left_frame = ttk.Frame(self.scan_frame)
+        right_frame = ttk.Frame(self.scan_frame)
+        left_frame.pack(side="left", fill="y")
+        right_frame.pack(side="right", fill="both", expand=True)
+
+        # LEFT FRAME
+
+        self.main_version = ttk.Label(
+            left_frame, text="", wraplength=280, anchor="w")
+        self.main_version.pack(padx=10, pady=10, fill="x")
+
+        self.button_scan_quick = ttk.Button(
+            left_frame, text="Quick scan", command=self.scan_a_file)
+        self.button_scan_quick.pack(fill="x", pady=10, padx=10)
+
+        self.button_scan_ram = ttk.Button(
+            left_frame, text="Memory", command=self.scan_a_file)
+        self.button_scan_ram.pack(fill="x", pady=10, padx=10)
+
+        self.button_scan_all = ttk.Button(
+            left_frame, text="All files&memory", command=self.scan_a_file)
+        self.button_scan_all.pack(fill="x", pady=10, padx=10)
+
         self.button_scan_a_file = ttk.Button(
-            self.scan_frame, text=self.texts[self.lang]["button_label1"], command=self.scan_a_file)
+            left_frame, text="One file", command=self.scan_a_file)
         self.button_scan_a_file.pack(fill="x", pady=10, padx=10)
 
         self.button_scan_a_directory = ttk.Button(
-            self.scan_frame, text=self.texts[self.lang]["button_label2"], command=self.scan_a_directory)
+            left_frame, text="Directory", command=self.scan_a_directory)
         self.button_scan_a_directory.pack(fill="x", pady=5, padx=10)
 
+        # RIGHT FRAME
+
+        bg = Palette.BG_DARK if THEME == "equilux" else Palette.BG_LIGHT
+        self.breathing_circle = BreathingCircle()
+
+        self.scan_info = ttk.Label(
+            right_frame, text="No scans is running currently.\nLive mode is off.",
+            wraplength=280, anchor="w"
+        )
+        self.scan_info.pack(padx=10, pady=10, fill="x")
+
+        self.canvas = self.breathing_circle.create_canvas(right_frame, bg)
+        self.canvas.pack(fill="both", expand=True)
+
+        self.breathing_circle.toggle_animation()
+        self.breathing_circle.set_line_width(15)
+        self.breathing_circle.set_symbol(2)
+
+    def create_history_frame(self):
         self.button_view_history = ttk.Button(
             self.history_frame, text=self.texts[self.lang]["button_label3"], command=self.view_history)
         self.button_view_history.pack(fill="x", pady=10, padx=10)
 
+    def create_update_frame(self):
         self.button_update_database = ttk.Button(
             self.update_frame, text=self.texts[self.lang]["button_label4"], command=self.update_database)
         self.button_update_database.pack(fill="x", padx=10, pady=10)
@@ -245,22 +302,6 @@ class ClamAVScanner:
         self.label_version = ttk.Label(
             self.update_frame, text="", wraplength=280)
         self.label_version.pack(padx=10, pady=10)
-
-        self.main_version = ttk.Label(
-            self.scan_frame, text="", wraplength=280)
-        self.main_version.pack(padx=10, pady=10)
-
-    def create_checkboxes(self):
-        self.checkbox_var_recursive = tk.IntVar(value=1)
-        self.checkbox_var_kill = tk.IntVar(value=0)
-
-        self.checkbox_recursive = ttk.Checkbutton(
-            self.config_frame, text=self.texts[self.lang]['recursive_search'], variable=self.checkbox_var_recursive)
-        self.checkbox_kill = ttk.Checkbutton(
-            self.config_frame, text=self.texts[self.lang]['delete_threats'], variable=self.checkbox_var_kill)
-
-        self.checkbox_recursive.pack(pady=5, padx=5, anchor="w")
-        self.checkbox_kill.pack(pady=5, padx=5, anchor="w")
 
     def change_lang(self, lang):
         self.lang = lang
@@ -561,26 +602,35 @@ class ClamAVScanner:
         self.root.update_idletasks()
 
 
+THEME = ""
+
 if __name__ == "__main__":
     windll.shcore.SetProcessDpiAwareness(1)
-    request_uac_or_skip()
+
+    DEV_MODE = True
+    if not DEV_MODE:
+        request_uac_or_skip()
     try:
         CLAM_PATH = find_clamav()
     except:
-        print()
+        pass
 
-    if darkdetect.isLight():
+    DEV_MODE_LIGHT = True
+
+    if darkdetect.isLight() or DEV_MODE_LIGHT:
         mode = "light"
-        root = ThemedTk(theme="arc")
+        THEME = "arc"
+        root = ThemedTk(theme=THEME)
         style = ttkthemes.ThemedStyle(root)
-        style.set_theme("arc")
+        style.set_theme(THEME)
     else:
         mode = "dark"
-        root = ThemedTk(theme="equilux")
+        THEME = "equilux"
+        root = ThemedTk(theme=THEME)
         style = ttkthemes.ThemedStyle(root)
-        style.set_theme("equilux")
+        style.set_theme(THEME)
 
-    root.geometry("356x422")
+    root.geometry("768x512")
     app = ClamAVScanner(_root=root)
     if mode == "dark":
         dark_title_bar(root)
