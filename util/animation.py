@@ -19,15 +19,28 @@ class BreathingCircle:
         self.color = "#89b4fa"
         self.hue_mode = False
 
+        self.circle_id = None
+        self.symbol_ids = []
+
     def create_canvas(self, master, bg, width=500, height=500):
         self.canvas = Canvas(master, width=width, height=height,
                              bg=bg, highlightthickness=0)
-        self.draw_circle()
+        self.init_shapes()
         self._calculate_scale()
         return self.canvas
 
+    def init_shapes(self):
+        self.circle_id = self.canvas.create_oval(0, 0, 0, 0, outline="")
+        self.symbol_ids = [
+            self.canvas.create_line(0, 0, 0, 0, fill="", width=0),  # cross
+            self.canvas.create_line(0, 0, 0, 0, fill="", width=0),  # cross
+            self.canvas.create_line(0, 0, 0, 0, fill="", smooth=False),  # check
+            self.canvas.create_oval(0, 0, 0, 0, fill="", outline=""),  # dot1
+            self.canvas.create_oval(0, 0, 0, 0, fill="", outline=""),  # dot2
+            self.canvas.create_oval(0, 0, 0, 0, fill="", outline=""),  # dot3
+        ]
+
     def _calculate_scale(self):
-        """Dynamically calculate scale based on actual canvas size"""
         current_width = self.canvas.winfo_width()
         current_height = self.canvas.winfo_height()
         self.scale_factor = min(current_width, current_height) / self.base_size
@@ -35,8 +48,59 @@ class BreathingCircle:
         self.line_width = self.base_line_width * self.scale_factor
         self.center = (current_width // 2, current_height // 2)
 
+    def update_circle(self):
+        current_radius = self.radius + self.pulse
+        x0 = self.center[0] - current_radius
+        y0 = self.center[1] - current_radius
+        x1 = self.center[0] + current_radius
+        y1 = self.center[1] + current_radius
+
+        self.canvas.coords(self.circle_id, x0, y0, x1, y1)
+        self.canvas.itemconfig(self.circle_id,
+                               outline=self.get_color(),
+                               width=self.line_width)
+
+    def update_symbols(self):
+        color = self.get_color()
+        x, y = self.center
+        line_width = self.line_width / 2
+
+        for item in self.symbol_ids:
+            self.canvas.itemconfig(item, fill="")
+
+        if self.symbol_index == 1:  # Cross
+            size = self.radius * 0.15
+            self.canvas.coords(self.symbol_ids[0],
+                               x - size, y - size, x + size, y + size)
+            self.canvas.itemconfig(self.symbol_ids[0],
+                                   fill=color, width=line_width)
+            self.canvas.coords(self.symbol_ids[1],
+                               x + size, y - size, x - size, y + size)
+            self.canvas.itemconfig(self.symbol_ids[1],
+                                   fill=color, width=line_width)
+
+        elif self.symbol_index == 2:  # Check
+            size = 25
+            base_y = y + 5
+            points = [
+                x - size + 5, base_y - size // 6,
+                x - size // 4, base_y + size // 3,
+                x + size - 5, base_y - size // 2
+            ]
+            self.canvas.coords(self.symbol_ids[2], *points)
+            self.canvas.itemconfig(self.symbol_ids[2],
+                                   fill=color, width=line_width)
+
+        elif self.symbol_index == 3:  # Ellipsis
+            dot_size = self.radius * 0.06
+            spacing = self.radius * 0.2
+            for i, offset in enumerate([-spacing, 0, spacing]):
+                self.canvas.coords(self.symbol_ids[3 + i],
+                                   x + offset - dot_size, y - dot_size,
+                                   x + offset + dot_size, y + dot_size)
+                self.canvas.itemconfig(self.symbol_ids[3 + i], fill=color)
+
     def set_size(self, width, height):
-        """Update canvas size and redraw"""
         self.width = width
         self.height = height
         self._calculate_scale()
@@ -76,53 +140,9 @@ class BreathingCircle:
             return "#{:02x}{:02x}{:02x}".format(*(int(c * 255) for c in rgb))
 
     def draw_circle(self):
-        self.canvas.delete('all')
         self._calculate_scale()
-
-        current_radius = self.radius + self.pulse
-        x0 = self.center[0] - current_radius
-        y0 = self.center[1] - current_radius
-        x1 = self.center[0] + current_radius
-        y1 = self.center[1] + current_radius
-        self.canvas.create_oval(x0, y0, x1, y1,
-                                width=self.line_width, outline=self.get_color())
-
-        x, y = self.center
-        if self.symbol_index == 1:  # Cross
-            size = self.radius * 0.15
-            self.canvas.create_line(x - size, y - size, x + size, y + size,
-                                    width=self.line_width / 2, fill=self.get_color())
-            self.canvas.create_line(x + size, y - size, x - size, y + size,
-                                    width=self.line_width / 2, fill=self.get_color())
-        elif self.symbol_index == 2:  # Check
-            size = 25
-            base_y = self.center[1] + 5
-            points = [
-                self.center[0] - size + 5,
-                base_y - size // 6,
-                self.center[0] - size // 4,
-                base_y + size // 3,
-                self.center[0] + size - 5,
-                base_y - size // 2
-            ]
-            self.canvas.create_line(
-                points,
-                fill=self.get_color(),
-                width=self.line_width / 2,
-                smooth=False
-            )
-        elif self.symbol_index == 3:  # Ellipsis
-            dot_size = self.radius * 0.06
-            spacing = self.radius * 0.2
-            self.canvas.create_oval(x - spacing - dot_size, y - dot_size,
-                                    x - spacing + dot_size, y + dot_size,
-                                    fill=self.get_color())
-            self.canvas.create_oval(x - dot_size, y - dot_size,
-                                    x + dot_size, y + dot_size,
-                                    fill=self.get_color())
-            self.canvas.create_oval(x + spacing - dot_size, y - dot_size,
-                                    x + spacing + dot_size, y + dot_size,
-                                    fill=self.get_color())
+        self.update_circle()
+        self.update_symbols()
 
     def animate(self):
         if self.animating:
@@ -130,7 +150,7 @@ class BreathingCircle:
             self.pulse = self.radius * 0.1 * math.sin(self.phase)
             self.hue = (self.hue + 0.01) % 1.0
             self.draw_circle()
-            self.canvas.after(16, self.animate)
+            self.canvas.after_id = self.canvas.after(16, self.animate)
 
     def toggle_symbol(self):
         self.symbol_index = (self.symbol_index + 1) % 4
