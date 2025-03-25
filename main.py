@@ -413,7 +413,6 @@ class ClamAVScanner:
             args.append(f'--memory')
             if self.checkbox_var_kill.get() == 1:
                 args.append('--unload')
-                args.append('--kill')
 
         if self.checkbox_var_processfork.get() == 1:
             max_scan_size = int((psutil.virtual_memory().free / (1024 * 1024 * 1024)) / 0.6)
@@ -449,7 +448,7 @@ class ClamAVScanner:
         self.breathing_circle.set_symbol(2)
         self.breathing_circle.set_color(Palette.COLOR_GREEN)
 
-        self.scan_info.config(text="No scan is running currently.",)
+        self.scan_info.config(text="No scan is running currently.", )
 
         # newWindow.title(self.texts[self.lang]['scan_complete'])
         # self.center_window(newWindow, 500, 250)
@@ -486,6 +485,9 @@ class ClamAVScanner:
         return filepath
 
     def _scan_util_start(self, title, filetypes=None, initialdir=None, is_file=True, mode="files"):
+        self.breathing_circle.set_color(Palette.COLOR_BLUE)
+        self.breathing_circle.set_symbol(3)
+
         if mode == "files":
             path = askopenfilename(title=title, filetypes=filetypes,
                                    initialdir=initialdir) if is_file else askdirectory(
@@ -508,18 +510,12 @@ class ClamAVScanner:
                 threading.Thread(target=self._scan_util_start_thread,
                                  args=(path,), daemon=True).start()
 
-                self.breathing_circle.set_color(Palette.COLOR_BLUE)
-                self.breathing_circle.set_symbol(3)
-
                 # self.root.after(100, self.check_scan_status,
                 #                 progressbar, newWindow, label_loading)
                 self.root.after(100, self.check_scan_status)
             elif mode == "memory":
                 threading.Thread(target=self._scan_util_start_thread,
                                  args=(path, mode,), daemon=True).start()
-
-                self.breathing_circle.set_color(Palette.COLOR_BLUE)
-                self.breathing_circle.set_symbol(3)
 
                 self.root.after(100, self.check_scan_status)
 

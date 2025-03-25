@@ -42,4 +42,5 @@ See `build.bat`.
 - [ ] extract UI strings to a single json provider util
 - [ ] break class ClamAVScanner into components
 - [ ] dnd on canvas to scan
-- [ ] parse scan log, color -> safe/unsafe result
+- [ ] parse scan log, color -> safe/unsafe 
+- [ ] lock UI while updating and scanning

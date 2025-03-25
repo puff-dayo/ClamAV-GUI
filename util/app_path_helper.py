@@ -33,7 +33,7 @@ def find_clamav():
             else:
                 return False
 
-        check_and_create(os.path.join(path, "clamd.conf"))
+        check_and_create(os.path.join(path, "clamd.conf", "TCPSocket 53910\n\nTCPAddr localhost"))
         check_and_write(os.path.join(path, "freshclam.conf"), "DatabaseMirror database.clamav.net")
 
     for drive in string.ascii_uppercase[2:]:
