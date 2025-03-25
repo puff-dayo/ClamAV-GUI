@@ -35,7 +35,7 @@ See `build.bat`.
 
 ## Todo
 
-- [ ] apply theme to all pop up windows
+- [x] apply theme to all pop up windows
 - [ ] scan bar popup -> scan frame inside
 - [ ] connect functions...
 - [ ] re-enable multilanguage UI
@@ -43,6 +43,3 @@ See `build.bat`.
 - [ ] break class ClamAVScanner into components
 - [ ] dnd on canvas to scan
 
-## Icon
-
-Crédito del icono: [diamonjohn en Openclipart](https://openclipart.org/artist/diamonjohn)

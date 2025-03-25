@@ -41,7 +41,7 @@ class ClamAVScanner:
 
         self.setup_ui()
 
-        self.icon_path = os.path.join(RES_PATH, "shield.png")
+        self.icon_path = os.path.join(RES_PATH, "svg2png_x2.png")
 
         try:
             self.icon_image = PhotoImage(file=self.icon_path)
@@ -265,23 +265,23 @@ class ClamAVScanner:
 
         # LEFT FRAME
         self.button_scan_quick = ttk.Button(
-            left_frame, text="⚡" + "Quick scan", command=self.scan_a_file)
+            left_frame, text="⚡" + "Quick scan", command=self.scan_mode_one_file)
         self.button_scan_quick.grid(row=0, column=0, sticky="ew", pady=10, padx=10)
 
         self.button_scan_ram = ttk.Button(
-            left_frame, text="💾 " + "Memory", command=self.scan_a_file)
+            left_frame, text="💾 " + "Memory", command=self.scan_mode_one_file)
         self.button_scan_ram.grid(row=1, column=0, sticky="ew", pady=10, padx=10)
 
         self.button_scan_all = ttk.Button(
-            left_frame, text="💻 " + "All files", command=self.scan_a_file)
+            left_frame, text="💻 " + "All files", command=self.scan_mode_one_file)
         self.button_scan_all.grid(row=2, column=0, sticky="ew", pady=10, padx=10)
 
         self.button_scan_a_file = ttk.Button(
-            left_frame, text="📄 " + "One file", command=self.scan_a_file)
+            left_frame, text="📄 " + "One file", command=self.scan_mode_one_file)
         self.button_scan_a_file.grid(row=3, column=0, sticky="ew", pady=10, padx=10)
 
         self.button_scan_a_directory = ttk.Button(
-            left_frame, text="📁 " + "Directory", command=self.scan_a_directory)
+            left_frame, text="📁 " + "Directory", command=self.scan_mode_directory)
         self.button_scan_a_directory.grid(row=4, column=0, sticky="ew", pady=5, padx=10)
 
         # Configure left_frame columns to expand buttons
@@ -289,10 +289,10 @@ class ClamAVScanner:
 
         # RIGHT FRAME
         self.scan_info = ttk.Label(
-            right_frame, text="No scan is running currently.\nLive mode is off.",
-            wraplength=280 * scaler, anchor="w"
+            right_frame, text="No scan is running currently.",
+            wraplength=280 * scaler, anchor="center", font=("Arial", 22)
         )
-        self.scan_info.grid(row=0, column=0, sticky="w", padx=10, pady=10)
+        self.scan_info.grid(row=0, column=0, padx=10, pady=60)
 
         bg = Palette.BG_DARK if MODE == "light" else Palette.BG_LIGHT
         self.breathing_circle = BreathingCircle()
@@ -312,6 +312,7 @@ class ClamAVScanner:
         # Configure right_frame grid weights
         right_frame.grid_rowconfigure(1, weight=1)
         right_frame.grid_columnconfigure(0, weight=1)
+
     def create_history_frame(self):
         left_frame = ttk.Frame(self.history_frame)
         right_frame = ttk.Frame(self.history_frame)
@@ -329,7 +330,6 @@ class ClamAVScanner:
             listbox.insert(tk.END, file)
 
         def on_select(event):
-            """Handle Listbox item selection event"""
             index = event.widget.curselection()
             if index:
                 selected_value = event.widget.get(index)
@@ -396,14 +396,20 @@ class ClamAVScanner:
         self.checkbox_kill.config(
             text=self.texts[self.lang]["checkbox_label2"])
 
-    def run_scan(self, path):
+    def _scan_util_start_thread(self, path, mode):
         args = ['clamscan']
 
-        if self.checkbox_var_recursive.get() == 1:
-            args.append('-r')
+        if mode == "files":
+            if self.checkbox_var_recursive.get() == 1:
+                args.append('-r')
+            if self.checkbox_var_kill.get() == 1:
+                args.append('--remove')
 
-        if self.checkbox_var_kill.get() == 1:
-            args.append('--remove')
+        if mode == "memory":
+            args.append(f'--memory')
+            if self.checkbox_var_kill.get() == 1:
+                args.append('--unload')
+                args.append('--kill')
 
         if self.checkbox_var_processfork.get() == 1:
             max_scan_size = int((psutil.virtual_memory().free / (1024 * 1024 * 1024)) / 0.6)
@@ -473,7 +479,7 @@ class ClamAVScanner:
 
         return filepath
 
-    def start_scan(self, title, filetypes=None, initialdir=None, is_file=True, mode="files"):
+    def _scan_util_start(self, title, filetypes=None, initialdir=None, is_file=True, mode="files"):
         if mode == "files":
             path = askopenfilename(title=title, filetypes=filetypes,
                                    initialdir=initialdir) if is_file else askdirectory(
@@ -493,7 +499,7 @@ class ClamAVScanner:
                 # progressbar.pack(fill=tk.X, padx=10, pady=10)
                 # progressbar.start(10)
 
-                threading.Thread(target=self.run_scan,
+                threading.Thread(target=self._scan_util_start_thread,
                                  args=(path,), daemon=True).start()
 
                 self.breathing_circle.set_color(Palette.COLOR_BLUE)
@@ -503,10 +509,16 @@ class ClamAVScanner:
                 #                 progressbar, newWindow, label_loading)
                 self.root.after(100, self.check_scan_status)
             elif mode == "memory":
-                pass
+                threading.Thread(target=self._scan_util_start_thread,
+                                 args=(path, mode,), daemon=True).start()
 
-    def scan_a_file(self):
-        self.start_scan(
+                self.breathing_circle.set_color(Palette.COLOR_BLUE)
+                self.breathing_circle.set_symbol(3)
+
+                self.root.after(100, self.check_scan_status)
+
+    def scan_mode_one_file(self):
+        self._scan_util_start(
             title=self.texts[self.lang]['select_file'],
             filetypes=[
                 (self.texts[self.lang]['all_files'], "*.*"),
@@ -517,8 +529,14 @@ class ClamAVScanner:
             is_file=True
         )
 
-    def scan_a_directory(self):
-        self.start_scan(
+    def scan_mode_memory(self):
+        self._scan_util_start(
+            title="",
+            mode="memory"
+        )
+
+    def scan_mode_directory(self):
+        self._scan_util_start(
             title=self.texts[self.lang]['select_directory'],
             initialdir=os.path.expanduser("~"),
             is_file=False
