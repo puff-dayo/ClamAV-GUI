@@ -24,7 +24,7 @@ class BreathingCircle:
         self.radius = self.base_radius
         self.line_width = self.base_line_width
 
-        # For Pillow rendering
+        # for Pillow rendering
         self.pil_image = None
         self.tk_image = None
         self.image_id = None
@@ -34,14 +34,15 @@ class BreathingCircle:
         self.high_res_factor = 1
 
     def create_canvas(self, master, bg, width=500, height=500):
-        self.canvas = Canvas(master, width=width, height=height,
-                             bg=bg, highlightthickness=0)
+        self.canvas = Canvas(master, width=width, height=height, bg=bg, highlightthickness=0)
+        self.width = width
+        self.height = height
         self._calculate_scale()
         self.render_image()
         return self.canvas
 
     def _calculate_scale(self):
-        self.canvas.update_idletasks()
+        # self.canvas.update_idletasks()
         current_width = self.canvas.winfo_width()
         current_height = self.canvas.winfo_height()
         self.scale_factor = min(current_width, current_height) / self.base_size
@@ -50,7 +51,9 @@ class BreathingCircle:
         self.center = (current_width // 2, current_height // 2)
 
     def render_image(self):
-        # Create high-resolution image
+        self._calculate_scale()
+
+        # high-resolution image
         hr_width = int(self.width * self.high_res_factor)
         hr_height = int(self.height * self.high_res_factor)
         hr_radius = self.radius * self.high_res_factor
@@ -58,11 +61,13 @@ class BreathingCircle:
         hr_line_width = self.line_width * self.high_res_factor
         hr_center = (hr_width // 2, hr_height // 2)
 
-        # Create blank image
+        # blank image
         self.pil_image = Image.new("RGBA", (hr_width, hr_height), (0, 0, 0, 0))
+        # self.pil_image = Image.new("RGBA", (hr_width, hr_height), (128, 128, 128, 128))
+
         draw = ImageDraw.Draw(self.pil_image)
 
-        # Draw circle
+        # circle
         current_radius = hr_radius + hr_pulse
         bbox = [
             hr_center[0] - current_radius,
@@ -82,10 +87,12 @@ class BreathingCircle:
 
         if self.image_id is None:
             self.image_id = self.canvas.create_image(
-                self.width // 2, self.height // 2, image=self.tk_image
+                self.center[0], self.center[1], image=self.tk_image
             )
         else:
             self.canvas.itemconfig(self.image_id, image=self.tk_image)
+            self.canvas.coords(self.image_id, self.center[0], self.center[1])
+
 
     def draw_symbols(self, draw, center, radius, line_width):
         color = self.get_color()
@@ -129,9 +136,11 @@ class BreathingCircle:
     def set_size(self, width, height):
         self.width = width
         self.height = height
+        self.canvas.config(width=self.width, height=self.height)
+        self.canvas.update()
+
         self._calculate_scale()
         self.center = (self.width // 2, self.height // 2)
-        self.canvas.config(width=self.width, height=self.height)
         self.render_image()
 
     def set_line_width(self, value):
@@ -187,7 +196,7 @@ class BreathingCircle:
             self.hue += 0.005
 
         self.render_image()
-        self.canvas.after(10, self.animate)
+        self.canvas.after(16, self.animate)
 
     def toggle_symbol(self):
         self.symbol_index = (self.symbol_index + 1) % 4

@@ -256,53 +256,62 @@ class ClamAVScanner:
     def create_scan_frame(self):
         left_frame = ttk.Frame(self.scan_frame)
         right_frame = ttk.Frame(self.scan_frame)
-        left_frame.pack(side="left", fill="y")
-        right_frame.pack(side="right", fill="both", expand=True)
+        left_frame.grid(row=0, column=0, sticky="ns")
+        right_frame.grid(row=0, column=1, sticky="nsew")
+
+        # Configure grid weights to make right_frame expandable
+        self.scan_frame.grid_columnconfigure(1, weight=1)
+        self.scan_frame.grid_rowconfigure(0, weight=1)
 
         # LEFT FRAME
-
         self.button_scan_quick = ttk.Button(
             left_frame, text="⚡" + "Quick scan", command=self.scan_a_file)
-        self.button_scan_quick.pack(fill="x", pady=10, padx=10)
+        self.button_scan_quick.grid(row=0, column=0, sticky="ew", pady=10, padx=10)
 
         self.button_scan_ram = ttk.Button(
             left_frame, text="💾 " + "Memory", command=self.scan_a_file)
-        self.button_scan_ram.pack(fill="x", pady=10, padx=10)
+        self.button_scan_ram.grid(row=1, column=0, sticky="ew", pady=10, padx=10)
 
         self.button_scan_all = ttk.Button(
             left_frame, text="💻 " + "All files", command=self.scan_a_file)
-        self.button_scan_all.pack(fill="x", pady=10, padx=10)
+        self.button_scan_all.grid(row=2, column=0, sticky="ew", pady=10, padx=10)
 
         self.button_scan_a_file = ttk.Button(
             left_frame, text="📄 " + "One file", command=self.scan_a_file)
-        self.button_scan_a_file.pack(fill="x", pady=10, padx=10)
+        self.button_scan_a_file.grid(row=3, column=0, sticky="ew", pady=10, padx=10)
 
         self.button_scan_a_directory = ttk.Button(
             left_frame, text="📁 " + "Directory", command=self.scan_a_directory)
-        self.button_scan_a_directory.pack(fill="x", pady=5, padx=10)
+        self.button_scan_a_directory.grid(row=4, column=0, sticky="ew", pady=5, padx=10)
+
+        # Configure left_frame columns to expand buttons
+        left_frame.grid_columnconfigure(0, weight=1)
 
         # RIGHT FRAME
         self.scan_info = ttk.Label(
-            right_frame, text="No scans is running currently.\nLive mode is off.",
+            right_frame, text="No scan is running currently.\nLive mode is off.",
             wraplength=280 * scaler, anchor="w"
         )
-        self.scan_info.pack(padx=10, pady=10, fill="x")
+        self.scan_info.grid(row=0, column=0, sticky="w", padx=10, pady=10)
 
         bg = Palette.BG_DARK if MODE == "light" else Palette.BG_LIGHT
         self.breathing_circle = BreathingCircle()
         self.canvas = self.breathing_circle.create_canvas(right_frame, bg)
-        self.canvas.pack(fill="both", anchor="center", expand=True)
+        self.canvas.grid(row=1, column=0, sticky="nsew", pady=(0, 10))
 
         self.breathing_circle.set_line_width(10)
         self.breathing_circle.toggle_animation()
         self.breathing_circle.set_color(Palette.COLOR_GREEN)
         self.breathing_circle.set_symbol(2)
-        self.breathing_circle.set_size(int(300*scaler), int(200*scaler))
+        self.breathing_circle.set_size(int(300 * scaler), int(200 * scaler))
 
         self.main_version = ttk.Label(
             right_frame, text="", anchor="e")
-        self.main_version.pack(padx=10, pady=10, fill="x")
+        self.main_version.grid(row=2, column=0, sticky="se", padx=10, pady=10)
 
+        # Configure right_frame grid weights
+        right_frame.grid_rowconfigure(1, weight=1)
+        right_frame.grid_columnconfigure(0, weight=1)
     def create_history_frame(self):
         left_frame = ttk.Frame(self.history_frame)
         right_frame = ttk.Frame(self.history_frame)
