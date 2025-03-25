@@ -268,7 +268,7 @@ class ClamAVScanner:
         self.button_scan_quick.grid(row=0, column=0, sticky="ew", pady=10, padx=10)
 
         self.button_scan_ram = ttk.Button(
-            left_frame, text="💾 " + "Memory", command=self.scan_mode_one_file)
+            left_frame, text="💾 " + "Memory", command=self.scan_mode_memory)
         self.button_scan_ram.grid(row=1, column=0, sticky="ew", pady=10, padx=10)
 
         self.button_scan_all = ttk.Button(
@@ -449,6 +449,8 @@ class ClamAVScanner:
         self.breathing_circle.set_symbol(2)
         self.breathing_circle.set_color(Palette.COLOR_GREEN)
 
+        self.scan_info.config(text="No scan is running currently.",)
+
         # newWindow.title(self.texts[self.lang]['scan_complete'])
         # self.center_window(newWindow, 500, 250)
         #
@@ -538,6 +540,7 @@ class ClamAVScanner:
             title="",
             mode="memory"
         )
+        self.scan_info.config(text="Scanning memory.")
 
     def scan_mode_directory(self):
         self._scan_util_start(

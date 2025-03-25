@@ -37,9 +37,9 @@ See `build.bat`.
 
 - [x] apply theme to all pop up windows
 - [ ] scan bar popup -> scan frame inside
-- [ ] connect functions...
+- [x] connect functions...
 - [ ] re-enable multilanguage UI
 - [ ] extract UI strings to a single json provider util
 - [ ] break class ClamAVScanner into components
 - [ ] dnd on canvas to scan
-
+- [ ] parse scan log, color -> safe/unsafe result
