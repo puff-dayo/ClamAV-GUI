@@ -5,10 +5,8 @@ import subprocess
 import threading
 import tkinter as tk
 import webbrowser
-from ctypes.wintypes import RECT
-
-from _ctypes import pointer, Structure, sizeof, byref
 from ctypes import windll, wintypes
+from ctypes.wintypes import RECT
 from datetime import datetime
 from idlelib.run import fix_scaling
 from tkinter import PhotoImage
@@ -18,6 +16,7 @@ from tkinter.filedialog import askopenfilename, askdirectory
 import darkdetect
 import psutil
 import ttkbootstrap as ttk
+from _ctypes import pointer, Structure, sizeof, byref
 
 from util.animation import BreathingCircle
 from util.app_path_helper import EXE_PATH, RES_PATH, find_clamav
@@ -203,16 +202,17 @@ class ClamAVScanner:
         # self.button_switch_language.pack(fill="x", padx=10, pady=10)
 
         self.about_info = ttk.Label(
-            self.config_frame, text=f"ClamAV Tk - v{VERSION}\nForked and built. 2025-", wraplength=280*scaler, anchor="w")
-        self.about_info.pack(padx=10*scaler, pady=10*scaler, fill="x")
+            self.config_frame, text=f"ClamAV Tk - v{VERSION}\nForked and built. 2025-", wraplength=280 * scaler,
+            anchor="w")
+        self.about_info.pack(padx=10 * scaler, pady=10 * scaler, fill="x")
 
         self.sys_info = ttk.Label(
-            self.config_frame, text=get_system_info(), wraplength=280*scaler, anchor="w")
-        self.sys_info.pack(padx=10*scaler, pady=10*scaler, fill="x")
+            self.config_frame, text=get_system_info(), wraplength=280 * scaler, anchor="w")
+        self.sys_info.pack(padx=10 * scaler, pady=10 * scaler, fill="x")
 
         self.herf = ttk.Label(
             self.config_frame, text=f"Github: puff-dayo/ClamAV-GUI",
-            wraplength=280*scaler,
+            wraplength=280 * scaler,
             cursor="hand2")
         self.herf.pack(padx=10, pady=10)
         self.herf.bind("<ButtonRelease-1>", lambda e: webbrowser.open_new("https://github.com/puff-dayo/ClamAV-GUI"))
@@ -284,7 +284,7 @@ class ClamAVScanner:
         # RIGHT FRAME
         self.scan_info = ttk.Label(
             right_frame, text="No scans is running currently.\nLive mode is off.",
-            wraplength=280*scaler, anchor="w"
+            wraplength=280 * scaler, anchor="w"
         )
         self.scan_info.pack(padx=10, pady=10, fill="x")
 
@@ -358,7 +358,7 @@ class ClamAVScanner:
         self.button_update_database.pack(fill="x", padx=10, pady=10)
 
         self.label_version = ttk.Label(
-            self.update_frame, text="", wraplength=280*scaler)
+            self.update_frame, text="", wraplength=280 * scaler)
         self.label_version.pack(padx=10, pady=10)
 
     def change_lang(self, lang):
@@ -411,42 +411,46 @@ class ClamAVScanner:
         except Exception as e:
             self.result_queue.put(e)
 
-    def check_scan_status(self, progressbar, newWindow, label_loading):
+    def check_scan_status(self):
         try:
             result = self.result_queue.get_nowait()
         except queue.Empty:
-            self.root.after(100, self.check_scan_status, progressbar, newWindow, label_loading)
+            # self.root.after(100, self.check_scan_status, progressbar, newWindow, label_loading)
+            self.root.after(100, self.check_scan_status)
             return
 
-        if progressbar.winfo_exists():
-            progressbar.stop()
-            progressbar.destroy()
+        # if progressbar.winfo_exists():
+        #     progressbar.stop()
+        #     progressbar.destroy()
+        #
+        # if label_loading.winfo_exists():
+        #     label_loading.destroy()
 
-        if label_loading.winfo_exists():
-            label_loading.destroy()
+        # after scan complete
 
-        newWindow.title(self.texts[self.lang]['scan_complete'])
-        self.center_window(newWindow, 500, 250)
+        self.breathing_circle.set_symbol(2)
+        self.breathing_circle.set_color(Palette.COLOR_GREEN)
 
-        text_square = tk.Text(newWindow, wrap=tk.WORD, font=("Courier New", 12))
-        text_square.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # newWindow.title(self.texts[self.lang]['scan_complete'])
+        # self.center_window(newWindow, 500, 250)
+        #
+        # text_square = tk.Text(newWindow, wrap=tk.WORD, font=("Courier New", 12))
+        # text_square.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         if isinstance(result, Exception):
-            text_square.insert(tk.END, f"{self.texts[self.lang]['error_message']}:\n{str(result)}")
+            # text_square.insert(tk.END, f"{self.texts[self.lang]['error_message']}:\n{str(result)}")
+            self.scan_info.config(text=f"Error in scan: {str(result)}")
+            self.breathing_circle.set_color(Palette.COLOR_RED)
+            self.breathing_circle.set_symbol(1)
         else:
-            text_square.insert(tk.END, f"{self.texts[self.lang]['stdout']}:\n")
-            text_square.insert(tk.END, result.stdout)
-            text_square.insert(tk.END, f"\n{self.texts[self.lang]['stderr']}:\n")
-            text_square.insert(tk.END, result.stderr)
+            # text_square.insert(tk.END, f"{self.texts[self.lang]['stdout']}:\n")
+            # text_square.insert(tk.END, result.stdout)
+            # text_square.insert(tk.END, f"\n{self.texts[self.lang]['stderr']}:\n")
+            # text_square.insert(tk.END, result.stderr)
 
             filepath = self.save_scan_result(result)
             messagebox.showinfo(self.texts[self.lang]['scan_complete'],
                                 f"{self.texts[self.lang]['result_saved']} {filepath}")
-
-        try:
-            text_square.config(state="disabled")
-        except tk.TclError as e:
-            print(f"Error configuring text widget: {e}")
 
     def save_scan_result(self, result):
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -461,29 +465,37 @@ class ClamAVScanner:
 
         return filepath
 
-    def start_scan(self, title, filetypes=None, initialdir=None, is_file=True):
-        path = askopenfilename(title=title, filetypes=filetypes, initialdir=initialdir) if is_file else askdirectory(
-            title=title, initialdir=initialdir)
+    def start_scan(self, title, filetypes=None, initialdir=None, is_file=True, mode="files"):
+        if mode == "files":
+            path = askopenfilename(title=title, filetypes=filetypes,
+                                   initialdir=initialdir) if is_file else askdirectory(
+                title=title, initialdir=initialdir)
+            if path:
+                path = PathUtil.handle_path(path)
+                #
+                # newWindow = tk.Toplevel(self.root)
+                # newWindow.title(self.texts[self.lang]['scan'])
+                # self.center_window(newWindow, 200, 150)
+                #
+                # label_loading = ttk.Label(
+                #     newWindow, text=f"{self.texts[self.lang]['scan']} {path}", justify="left", wraplength=280 * scaler)
+                # label_loading.pack(padx=10, pady=10)
+                #
+                # progressbar = ttk.Progressbar(newWindow, mode="indeterminate")
+                # progressbar.pack(fill=tk.X, padx=10, pady=10)
+                # progressbar.start(10)
 
-        if path:
-            path = PathUtil.handle_path(path)
+                threading.Thread(target=self.run_scan,
+                                 args=(path,), daemon=True).start()
 
-            newWindow = tk.Toplevel(self.root)
-            newWindow.title(self.texts[self.lang]['scan'])
-            self.center_window(newWindow, 200, 150)
+                self.breathing_circle.set_color(Palette.COLOR_BLUE)
+                self.breathing_circle.set_symbol(3)
 
-            label_loading = ttk.Label(
-                newWindow, text=f"{self.texts[self.lang]['scan']} {path}", justify="left", wraplength=280*scaler)
-            label_loading.pack(padx=10, pady=10)
-
-            progressbar = ttk.Progressbar(newWindow, mode="indeterminate")
-            progressbar.pack(fill=tk.X, padx=10, pady=10)
-            progressbar.start(10)
-
-            threading.Thread(target=self.run_scan,
-                             args=(path,), daemon=True).start()
-            self.root.after(100, self.check_scan_status,
-                            progressbar, newWindow, label_loading)
+                # self.root.after(100, self.check_scan_status,
+                #                 progressbar, newWindow, label_loading)
+                self.root.after(100, self.check_scan_status)
+            elif mode == "memory":
+                pass
 
     def scan_a_file(self):
         self.start_scan(
@@ -520,7 +532,7 @@ class ClamAVScanner:
         label_about = ttk.Label(
             about_window,
             text=self.texts[self.lang]['about'],
-            wraplength=280*scaler
+            wraplength=280 * scaler
         )
         label_version.pack(padx=10, pady=10)
         label_about.pack(pady=10, padx=10)
