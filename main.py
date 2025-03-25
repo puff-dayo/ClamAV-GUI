@@ -5,8 +5,12 @@ import subprocess
 import threading
 import tkinter as tk
 import webbrowser
-from ctypes import windll
+from ctypes.wintypes import RECT
+
+from _ctypes import pointer, Structure, sizeof, byref
+from ctypes import windll, wintypes
 from datetime import datetime
+from idlelib.run import fix_scaling
 from tkinter import PhotoImage
 from tkinter import messagebox
 from tkinter.filedialog import askopenfilename, askdirectory
@@ -199,15 +203,16 @@ class ClamAVScanner:
         # self.button_switch_language.pack(fill="x", padx=10, pady=10)
 
         self.about_info = ttk.Label(
-            self.config_frame, text=f"ClamAV Tk - v{VERSION}\nForked and built. 2025-", wraplength=280, anchor="w")
-        self.about_info.pack(padx=10, pady=10, fill="x")
+            self.config_frame, text=f"ClamAV Tk - v{VERSION}\nForked and built. 2025-", wraplength=280*scaler, anchor="w")
+        self.about_info.pack(padx=10*scaler, pady=10*scaler, fill="x")
 
         self.sys_info = ttk.Label(
-            self.config_frame, text=get_system_info(), wraplength=280, anchor="w")
-        self.sys_info.pack(padx=10, pady=10, fill="x")
+            self.config_frame, text=get_system_info(), wraplength=280*scaler, anchor="w")
+        self.sys_info.pack(padx=10*scaler, pady=10*scaler, fill="x")
 
         self.herf = ttk.Label(
-            self.config_frame, text=f"Github: puff-dayo/ClamAV-GUI", wraplength=280,
+            self.config_frame, text=f"Github: puff-dayo/ClamAV-GUI",
+            wraplength=280*scaler,
             cursor="hand2")
         self.herf.pack(padx=10, pady=10)
         self.herf.bind("<ButtonRelease-1>", lambda e: webbrowser.open_new("https://github.com/puff-dayo/ClamAV-GUI"))
@@ -279,7 +284,7 @@ class ClamAVScanner:
         # RIGHT FRAME
         self.scan_info = ttk.Label(
             right_frame, text="No scans is running currently.\nLive mode is off.",
-            wraplength=280, anchor="w"
+            wraplength=280*scaler, anchor="w"
         )
         self.scan_info.pack(padx=10, pady=10, fill="x")
 
@@ -353,7 +358,7 @@ class ClamAVScanner:
         self.button_update_database.pack(fill="x", padx=10, pady=10)
 
         self.label_version = ttk.Label(
-            self.update_frame, text="", wraplength=280)
+            self.update_frame, text="", wraplength=280*scaler)
         self.label_version.pack(padx=10, pady=10)
 
     def change_lang(self, lang):
@@ -468,7 +473,7 @@ class ClamAVScanner:
             self.center_window(newWindow, 200, 150)
 
             label_loading = ttk.Label(
-                newWindow, text=f"{self.texts[self.lang]['scan']} {path}", justify="left", wraplength=280)
+                newWindow, text=f"{self.texts[self.lang]['scan']} {path}", justify="left", wraplength=280*scaler)
             label_loading.pack(padx=10, pady=10)
 
             progressbar = ttk.Progressbar(newWindow, mode="indeterminate")
@@ -515,56 +520,10 @@ class ClamAVScanner:
         label_about = ttk.Label(
             about_window,
             text=self.texts[self.lang]['about'],
-            wraplength=280
+            wraplength=280*scaler
         )
         label_version.pack(padx=10, pady=10)
         label_about.pack(pady=10, padx=10)
-
-    def view_history(self):
-        history_files = os.listdir(self.history_dir)
-
-        if not history_files:
-            messagebox.showinfo(
-                "Historial", self.texts[self.lang]['no_history_files'])
-            return
-
-        history_window = tk.Toplevel(self.root)
-        history_window.title(self.texts[self.lang]['history_title'])
-        self.center_window(history_window, 200, 100)
-
-        listbox = tk.Listbox(history_window, font=("Courier New", 12))
-        listbox.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-
-        for file in sorted(history_files, reverse=True):
-            listbox.insert(tk.END, file)
-
-        def open_selected_file(e=None):
-            selected_index = listbox.curselection()
-            if not selected_index:
-                return
-
-            selected_file = listbox.get(selected_index)
-            filepath = self.history_dir / selected_file
-
-            with open(filepath, "r", encoding="utf-8") as f:
-                content = f.read()
-
-            result_window = tk.Toplevel(self.root)
-            result_window.title(
-                f"{self.texts[self.lang]['history_title']}: {selected_file}")
-            self.center_window(result_window, 100, 200)
-
-            text_square = tk.Text(
-                result_window, wrap=tk.WORD, font=("Courier New", 12))
-            text_square.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-            text_square.insert(tk.END, content)
-            text_square.config(state="disabled")
-
-        history_window.bind('<Double-Button-1>', open_selected_file)
-
-        open_button = ttk.Button(
-            history_window, text=self.texts[self.lang]['open_result'], command=open_selected_file)
-        open_button.pack(pady=10)
 
     def update_database(self):
         self.button_update_database['state'] = tk.DISABLED
@@ -659,6 +618,65 @@ class ClamAVScanner:
         self.root.update_idletasks()
 
 
+class MONITORINFO(Structure):
+    _fields_ = [
+        ("cbSize", wintypes.DWORD),
+        ("rcMonitor", RECT),
+        ("rcWork", RECT),
+        ("dwFlags", wintypes.DWORD)
+    ]
+
+
+def fix_HiDPI(_root):
+    global scale_factor
+    global scaler
+    if os.name == "nt":
+        try:
+            windll.shcore.SetProcessDpiAwareness(2)
+            scale_factor = windll.shcore.GetScaleFactorForDevice(0)
+            shcore = True
+        except Exception:
+            try:
+                windll.user32.SetProcessDPIAware()
+                shcore = False
+            except Exception:
+                scaler = 1
+                return
+
+        if shcore:
+            scaler = 96 * scale_factor / 100 / 60
+            _root.tk.call('tk', 'scaling', scaler)
+
+            win_handle = wintypes.HWND(_root.winfo_id())
+            monitor_handle = windll.user32.MonitorFromWindow(win_handle, 2)  # MONITOR_DEFAULTTONEAREST = 2
+
+            x_dpi = wintypes.UINT()
+            y_dpi = wintypes.UINT()
+            windll.shcore.GetDpiForMonitor(monitor_handle, 0, pointer(x_dpi), pointer(y_dpi))  # MDT_EFFECTIVE_DPI = 0
+
+            monitor_info = MONITORINFO()
+            monitor_info.cbSize = sizeof(MONITORINFO)
+            windll.user32.GetMonitorInfoW(monitor_handle, byref(monitor_info))
+
+            monitor_width = monitor_info.rcMonitor.right - monitor_info.rcMonitor.left
+            monitor_height = monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top
+
+            target_width = 1920
+            target_height = 1080
+
+            scale_w = target_width / monitor_width
+            scale_h = target_height / monitor_height
+            scale = max(scale_w, scale_h)
+
+            actual_width = int(monitor_width * scale)
+            actual_height = int(monitor_height * scale)
+
+            _root.geometry(f"{actual_width}x{actual_height}")
+
+    # Adjust font sizes for HiDPI displays
+    fix_scaling(_root)
+
+
 MODE = ""
 
 if __name__ == "__main__":
@@ -685,7 +703,8 @@ if __name__ == "__main__":
         MODE = "dark"
         root = ttk.Window(themename="darkly")
 
-    root.geometry("768x512")
+    fix_HiDPI(root)
+
     app = ClamAVScanner(_root=root)
 
     if MODE == "dark":
