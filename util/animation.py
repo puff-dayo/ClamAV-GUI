@@ -112,14 +112,14 @@ class BreathingCircle:
                 width=int(hr_line_width))
 
         elif self.symbol_index == 2:  # Check
-            size = 25 * self.high_res_factor
-            base_y = y + 5 * self.high_res_factor
+            size = 60 * self.high_res_factor
+            base_y = y + 7 * self.high_res_factor  # Adjusted to accommodate larger size
             points = [
-                x - size + 5 * self.high_res_factor, base_y - size // 6,
+                x - size + 7 * self.high_res_factor, base_y - size // 6,
                 x - size // 4, base_y + size // 3,
-                x + size - 5 * self.high_res_factor, base_y - size // 2
+                x + size - 7 * self.high_res_factor, base_y - size // 2
             ]
-            draw.line(points, fill=color, width=int(hr_line_width))
+            draw.line(points, fill=color, width=int(hr_line_width*1.5))
 
         elif self.symbol_index == 3:  # Ellipsis
             dot_size = radius * 0.06

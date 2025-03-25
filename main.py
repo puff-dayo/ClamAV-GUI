@@ -12,6 +12,7 @@ from idlelib.run import fix_scaling
 from tkinter import PhotoImage
 from tkinter import messagebox
 from tkinter.filedialog import askopenfilename, askdirectory
+from tkinter.font import Font
 
 import darkdetect
 import psutil
@@ -252,6 +253,7 @@ class ClamAVScanner:
 
         style = ttk.Style()
         style.configure("TNotebook.Tab", font=("Segoe UI Emoji", 10))
+        style.configure("TButton", font=("Segoe UI Emoji", 9))
 
     def create_scan_frame(self):
         left_frame = ttk.Frame(self.scan_frame)
@@ -263,9 +265,11 @@ class ClamAVScanner:
         self.scan_frame.grid_rowconfigure(0, weight=1)
 
         # LEFT FRAME
+        emoji_font = Font(family="Segoe UI Emoji", size=10)
         self.button_scan_quick = ttk.Button(
             left_frame, text="⚡" + "Quick scan", command=self.scan_mode_one_file)
         self.button_scan_quick.grid(row=0, column=0, sticky="ew", pady=10, padx=10)
+        self.button_scan_quick.config(state="disabled")
 
         self.button_scan_ram = ttk.Button(
             left_frame, text="💾 " + "Memory", command=self.scan_mode_memory)
@@ -274,6 +278,7 @@ class ClamAVScanner:
         self.button_scan_all = ttk.Button(
             left_frame, text="💻 " + "All files", command=self.scan_mode_one_file)
         self.button_scan_all.grid(row=2, column=0, sticky="ew", pady=10, padx=10)
+        self.button_scan_all.config(state="disabled")
 
         self.button_scan_a_file = ttk.Button(
             left_frame, text="📄 " + "One file", command=self.scan_mode_one_file)
@@ -567,12 +572,12 @@ class ClamAVScanner:
         label_about.pack(pady=10, padx=10)
 
     def update_database(self):
-        self.button_update_database['state'] = tk.DISABLED
+        self.button_update_database.config(state="disabled")
         thread = threading.Thread(target=self._update_database)
         thread.start()
 
     def _update_database(self):
-        self.label_version["text"] = "Database downloading, please wait."
+        self.scan_info.config(text="Checking virus database.")
         result = subprocess.run(["freshclam"],
                                 capture_output=True, text=True)
 
@@ -585,8 +590,9 @@ class ClamAVScanner:
 
         if "Problem with internal logger" in result.stderr or result.returncode == 0:
             self.label_version["text"] = self.texts[self.lang]['database_up_to_date']
-        self.button_update_database['state'] = tk.NORMAL
+        self.button_update_database.config(state="normal")
 
+        self.scan_info.config(text="Database up to date.")
         self.get_main_version()
         self.get_version()
 
