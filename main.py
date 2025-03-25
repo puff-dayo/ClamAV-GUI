@@ -291,14 +291,13 @@ class ClamAVScanner:
         bg = Palette.BG_DARK if MODE == "light" else Palette.BG_LIGHT
         self.breathing_circle = BreathingCircle()
         self.canvas = self.breathing_circle.create_canvas(right_frame, bg)
-        self.canvas.pack(fill="both", expand=True)
+        self.canvas.pack(fill="both", anchor="center", expand=True)
 
         self.breathing_circle.set_line_width(10)
         self.breathing_circle.toggle_animation()
         self.breathing_circle.set_color(Palette.COLOR_GREEN)
         self.breathing_circle.set_symbol(2)
-        self.breathing_circle.draw_circle()
-        self.breathing_circle.set_size(300, 200)
+        self.breathing_circle.set_size(int(300*scaler), int(200*scaler))
 
         self.main_version = ttk.Label(
             right_frame, text="", anchor="e")
@@ -701,8 +700,8 @@ if __name__ == "__main__":
 
     windll.shcore.SetProcessDpiAwareness(1)
 
-    # DEV_MODE = True
-    DEV_MODE = False
+    DEV_MODE = True
+    # DEV_MODE = False
     if not DEV_MODE:
         request_uac_or_skip()
     try:
