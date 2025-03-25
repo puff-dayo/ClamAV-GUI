@@ -120,7 +120,7 @@ class ClamAVScanner:
                 "button_label1": "Scan a file",
                 "button_label2": "Scan a directory",
                 "button_label3": "View scan history",
-                "button_label4": "Update database",
+                "button_label4": "Update DB",
                 "checkbox_label1": "Search for threats recursively",
                 "checkbox_label2": "Remove found threats",
                 "version_label": "ClamAV version: ",
@@ -245,8 +245,8 @@ class ClamAVScanner:
             self.scan_frame, text="🔍 " + self.texts[self.lang]["tab1"])
         self.tabs_notebook.add(
             self.history_frame, text="📋 " + self.texts[self.lang]["tab2"])
-        self.tabs_notebook.add(
-            self.update_frame, text="☁️ " + self.texts[self.lang]["tab3"])
+        # self.tabs_notebook.add(
+        #     self.update_frame, text="☁️ " + self.texts[self.lang]["tab3"])
         self.tabs_notebook.add(
             self.config_frame, text="🛠 " + self.texts[self.lang]["tab4"])
 
@@ -256,10 +256,9 @@ class ClamAVScanner:
     def create_scan_frame(self):
         left_frame = ttk.Frame(self.scan_frame)
         right_frame = ttk.Frame(self.scan_frame)
-        left_frame.grid(row=0, column=0, sticky="ns")
-        right_frame.grid(row=0, column=1, sticky="nsew")
+        left_frame.grid(row=0, column=0, sticky="ns", pady=10, padx=10)
+        right_frame.grid(row=0, column=1, sticky="nsew", pady=10, padx=10)
 
-        # Configure grid weights to make right_frame expandable
         self.scan_frame.grid_columnconfigure(1, weight=1)
         self.scan_frame.grid_rowconfigure(0, weight=1)
 
@@ -284,7 +283,13 @@ class ClamAVScanner:
             left_frame, text="📁 " + "Directory", command=self.scan_mode_directory)
         self.button_scan_a_directory.grid(row=4, column=0, sticky="ew", pady=5, padx=10)
 
-        # Configure left_frame columns to expand buttons
+        self.button_update_database = ttk.Button(
+            left_frame, text="☁️ " + self.texts[self.lang]["button_label4"],
+            command=self.update_database, bootstyle="info"
+        )
+        self.button_update_database.grid(row=5, column=0, sticky="sew", pady=5, padx=10)
+
+        left_frame.grid_rowconfigure(5, weight=1)
         left_frame.grid_columnconfigure(0, weight=1)
 
         # RIGHT FRAME
@@ -292,7 +297,7 @@ class ClamAVScanner:
             right_frame, text="No scan is running currently.",
             wraplength=280 * scaler, anchor="center", font=("Arial", 22)
         )
-        self.scan_info.grid(row=0, column=0, padx=10, pady=60)
+        self.scan_info.grid(row=0, column=0, padx=10, pady=80)
 
         bg = Palette.BG_DARK if MODE == "light" else Palette.BG_LIGHT
         self.breathing_circle = BreathingCircle()
@@ -309,7 +314,6 @@ class ClamAVScanner:
             right_frame, text="", anchor="e")
         self.main_version.grid(row=2, column=0, sticky="se", padx=10, pady=10)
 
-        # Configure right_frame grid weights
         right_frame.grid_rowconfigure(1, weight=1)
         right_frame.grid_columnconfigure(0, weight=1)
 
@@ -361,9 +365,9 @@ class ClamAVScanner:
         scrollbar.config(command=self.label_history.yview)
 
     def create_update_frame(self):
-        self.button_update_database = ttk.Button(
-            self.update_frame, text=self.texts[self.lang]["button_label4"], command=self.update_database)
-        self.button_update_database.pack(fill="x", padx=10, pady=10)
+        # self.button_update_database = ttk.Button(
+        #     self.update_frame, text=self.texts[self.lang]["button_label4"], command=self.update_database)
+        # self.button_update_database.pack(fill="x", padx=10, pady=10)
 
         self.label_version = ttk.Label(
             self.update_frame, text="", wraplength=280 * scaler)
@@ -727,8 +731,8 @@ if __name__ == "__main__":
 
     windll.shcore.SetProcessDpiAwareness(1)
 
-    DEV_MODE = True
-    # DEV_MODE = False
+    # DEV_MODE = True
+    DEV_MODE = False
     if not DEV_MODE:
         request_uac_or_skip()
     try:
@@ -736,7 +740,8 @@ if __name__ == "__main__":
     except:
         pass
 
-    DEV_MODE_LIGHT = True
+    # DEV_MODE_LIGHT = True
+    DEV_MODE_LIGHT = False
 
     if darkdetect.isLight() or DEV_MODE_LIGHT:
         MODE = "light"
