@@ -27,7 +27,7 @@ from util.path_escape import PathUtil
 from util.request_uac import request_uac_or_skip
 from util.sys_info import get_system_info
 
-VERSION = "0.0.11"
+VERSION = "0.0.12"
 
 
 class ClamAVScanner:
@@ -546,6 +546,9 @@ class ClamAVScanner:
             self.label_version["text"] = self.texts[self.lang]['database_up_to_date']
         self.button_update_database['state'] = tk.NORMAL
 
+        self.get_main_version()
+        self.get_version()
+
     def get_version(self):
         def run_version_fetch():
             try:
@@ -686,7 +689,8 @@ if __name__ == "__main__":
 
     windll.shcore.SetProcessDpiAwareness(1)
 
-    DEV_MODE = True
+    # DEV_MODE = True
+    DEV_MODE = False
     if not DEV_MODE:
         request_uac_or_skip()
     try:
