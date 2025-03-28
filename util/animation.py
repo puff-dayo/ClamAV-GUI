@@ -112,8 +112,8 @@ class BreathingCircle:
                 width=int(hr_line_width))
 
         elif self.symbol_index == 2:  # Check
-            size = 60 * self.high_res_factor
-            base_y = y + 7 * self.high_res_factor  # Adjusted to accommodate larger size
+            size = 40 * self.high_res_factor
+            base_y = y + 7 * self.high_res_factor
             points = [
                 x - size + 7 * self.high_res_factor, base_y - size // 6,
                 x - size // 4, base_y + size // 3,

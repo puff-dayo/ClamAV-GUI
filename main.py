@@ -695,6 +695,7 @@ def fix_HiDPI(_root):
 
         if shcore:
             scaler = 96 * scale_factor / 100 / 60
+            print(scaler)
             _root.tk.call('tk', 'scaling', scaler)
 
             win_handle = wintypes.HWND(_root.winfo_id())
@@ -718,8 +719,8 @@ def fix_HiDPI(_root):
             scale_h = target_height / monitor_height
             scale = max(scale_w, scale_h)
 
-            actual_width = int(monitor_width * scale)
-            actual_height = int(monitor_height * scale)
+            actual_width = int(1024 * scale)
+            actual_height = int(768 * scale)
 
             _root.geometry(f"{actual_width}x{actual_height}")
 
