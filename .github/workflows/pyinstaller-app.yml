@@ -32,7 +32,7 @@ jobs:
         .venv\Scripts\activate
         uv sync
     - name: Running Pyinstaller
-      run: uv run pyinstaller -F -n ClamAVTk -w --hidden-import darkdetect --add-data "util;util" --add-data "res;res" --icon="res/shield.png" "main.py"
+      run: uv run pyinstaller -F -n ClamAVTk -w --hidden-import darkdetect --add-data "util;util" --add-data "res;res" --icon="res/svg2png_x2.png" "main.py"
     - name: Upload files
       uses: actions/upload-artifact@v4
       with:
