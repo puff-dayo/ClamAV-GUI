@@ -4,6 +4,8 @@
 
 ClamAV Tk is a graphical user interface (GUI) designed to facilitate the use of [ClamAV](https://www.clamav.net/), an open source antivirus software. This repo is forked and built from [Acosta-gh/clamav-tkinter_PYTHON](https://github.com/Acosta-gh/clamav-tkinter_PYTHON). ClamAV Tk (this repo) is a WIP and not currently stable.
 
+[![ClamAV Tk application](https://github.com/puff-dayo/ClamAV-GUI/actions/workflows/pyinstaller-app.yml/badge.svg)](https://github.com/puff-dayo/ClamAV-GUI/actions/workflows/pyinstaller-app.yml)
+
 ## Features
 
 - Scan files or directories
